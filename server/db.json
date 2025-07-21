@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "jd@gmail.com",
+      "password": "123"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "js@gmail.com",
+      "password": "456"
+    },
+    {
+      "id": 3,
+      "name": "Alice Johnson",
+      "email": "aj@gmail.com",
+      "password": "abc"
+    },
+    {
+      "id": 4,
+      "name": "Bob Brown",
+      "email": "bb@gmail.com",
+      "password": "789"
+    }
+  ]
+}
