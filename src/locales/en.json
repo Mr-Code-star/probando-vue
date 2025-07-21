@@ -1,0 +1,12 @@
+{
+  "sign-in": {
+    "email": "Email",
+    "password": "Password"
+  },
+  "sign-up": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "confirm-password": "Confirm Password"
+  }
+}
