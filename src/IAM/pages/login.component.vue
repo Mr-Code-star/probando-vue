@@ -1,13 +1,15 @@
 <script>
 
+import SignIn from "../components/sign-in.component.vue";
+
 export default {
-  name: "login"
+  name: "login",
+  components: {SignIn}
 }
 </script>
 
 <template>
-<p>dsadsadas</p>
-
+<sign-in></sign-in>
 </template>
 
 <style>

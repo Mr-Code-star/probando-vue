@@ -1,4 +1,5 @@
 import LoginComponent from "../IAM/pages/login.component.vue";
+import RegisterComponent from "../IAM/pages/register.component.vue";
 import {createRouter, createWebHistory} from "vue-router";
 //import {authenticationGuard} from "../iam/services/authentication.guard.js";
 //import SignUpComponent from "../iam/pages/sign-up.component.vue";
@@ -12,6 +13,7 @@ const PageNotFoundComponent = () => import('../public/pages/page-not-found.compo
 
 const routes = [
     {path: '/login', name: 'login', component: LoginComponent, meta: {title: 'Login'}},
+    {path: '/register', name: 'register', component: RegisterComponent, meta: {title: 'Register'}},
     {path: '/', name: 'default', redirect: '/login'},
     {path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundComponent, meta: {title: 'Page Not Found'}}
 ];
