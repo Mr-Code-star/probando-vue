@@ -8,7 +8,7 @@ import {createRouter, createWebHistory} from "vue-router";
 
 //const AboutComponent = () => import('../public/pages/about.component.vue');
 //const CategoryManagementComponent = () => import('../publishing/pages/category-management.component.vue');
-const HomeComponent = () => import("../public/pages/home.component.vue")
+const HomeComponent = () => import("../public/pages/page-home.component.vue")
 const PageNotFoundComponent = () => import('../public/pages/page-not-found.component.vue');
 
 const routes = [
