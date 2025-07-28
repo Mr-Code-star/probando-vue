@@ -59,6 +59,9 @@ export default {
     navigateToRegister(){
       this.$router.push("/register");
     },
+    navigateToHome(){
+      this.$router.push("/home");
+    },
     showForgotPasswordDialog() {
       this.forgotPasswordDialogVisible = true;
     },
@@ -119,7 +122,7 @@ export default {
           </pv-message>
         </div>
 
-        <pv-button label="Submit" severity="success" class="submit-button"/>
+        <pv-button label="Submit" severity="success" class="submit-button" @click.prevent = "navigateToHome()"/>
 
         <div class="links-container">
           <a href="#" @click.prevent="showForgotPasswordDialog" class="forgot-password">Forgot password?</a>

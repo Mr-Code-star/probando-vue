@@ -8,11 +8,12 @@ import {createRouter, createWebHistory} from "vue-router";
 
 //const AboutComponent = () => import('../public/pages/about.component.vue');
 //const CategoryManagementComponent = () => import('../publishing/pages/category-management.component.vue');
+const HomeComponent = () => import("../public/pages/home.component.vue")
 const PageNotFoundComponent = () => import('../public/pages/page-not-found.component.vue');
-
 
 const routes = [
     {path: '/login', name: 'login', component: LoginComponent, meta: {title: 'Login'}},
+    {path: '/home', name: 'home', component: HomeComponent, meta: {title: 'Home'}},
     {path: '/register', name: 'register', component: RegisterComponent, meta: {title: 'Register'}},
     {path: '/', name: 'default', redirect: '/login'},
     {path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundComponent, meta: {title: 'Page Not Found'}}
