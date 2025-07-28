@@ -8,13 +8,15 @@ import {createRouter, createWebHistory} from "vue-router";
 
 //const AboutComponent = () => import('../public/pages/about.component.vue');
 //const CategoryManagementComponent = () => import('../publishing/pages/category-management.component.vue');
-const HomeComponent = () => import("../public/pages/page-home.component.vue")
+const HomeComponent = () => import("../public/pages/home.component.vue")
+const SubscriptionPlanManagerComponent = () => import("../suscription-and-paymentmethods/pages/page-subscription-plan-management.vue")
 const PageNotFoundComponent = () => import('../public/pages/page-not-found.component.vue');
 
 const routes = [
     {path: '/login', name: 'login', component: LoginComponent, meta: {title: 'Login'}},
     {path: '/home', name: 'home', component: HomeComponent, meta: {title: 'Home'}},
     {path: '/register', name: 'register', component: RegisterComponent, meta: {title: 'Register'}},
+    {path: '/subscriptions', name: 'subscriptions-plan-management', component: SubscriptionPlanManagerComponent, meta: {title: 'Subscription Plan Manager'}},
     {path: '/', name: 'default', redirect: '/login'},
     {path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundComponent, meta: {title: 'Page Not Found'}}
 ];
