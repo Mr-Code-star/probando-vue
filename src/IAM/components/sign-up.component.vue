@@ -14,14 +14,25 @@ export default {
   data() {
     return {
       name: '',
+      password: '',
       lastname: '',
       contactInfo: '',
-      password: '',
+      contactErrorMsg: '',
+      passwordStrength: 0 ,
+      passwordErrors: [],
       gender: null,
       pronoun: null,
       selectedDay: null,
       showNameError: false,
+      showPasswordError: false,
       showLastnameError: false,
+      showDayError: false,
+      showMonthError: false,
+      showYearError: false,
+      showGenderError: false,
+      showPronounError: false,
+      showCustomGenderError: false,
+      showContactError: false,
       selectedMonth: null,
       selectedYear: null,
       dayOptions: Array.from({ length: 31 }, (_, i) => ({
@@ -55,13 +66,98 @@ export default {
     }
   },
   methods: {
+    validateContact() {
+      const contact = this.contactInfo.trim();
+      if (contact === '') {
+        this.showContactError = true;
+        this.contactErrorMsg = 'Phone or email is required';
+        return false;
+      }
+
+      // Validar si es email o teléfono
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+      const isPhone = /^[0-9]{9,15}$/.test(contact); // Ajusta el rango según necesites
+
+      if (!isEmail && !isPhone) {
+        this.showContactError = true;
+        this.contactErrorMsg = 'Please enter a valid email or phone number';
+        return false;
+      }
+
+      this.showContactError = false;
+      return true;
+    },
+    validatePassword() {
+      this.passwordErrors = [];
+      const password = this.password.trim();
+
+      if (password === '') {
+        this.showPasswordError = true;
+        this.passwordErrors.push('Password is required');
+        return false;
+      }
+
+      // Validar fortaleza
+      if (password.length < 8) {
+        this.passwordErrors.push('At least 8 characters');
+      }
+      if (!/[A-Z]/.test(password)) {
+        this.passwordErrors.push('At least one uppercase letter');
+      }
+      if (!/[a-z]/.test(password)) {
+        this.passwordErrors.push('At least one lowercase letter');
+      }
+      if (!/[0-9]/.test(password)) {
+        this.passwordErrors.push('At least one number');
+      }
+      if (!/[^A-Za-z0-9]/.test(password)) {
+        this.passwordErrors.push('At least one special character');
+      }
+
+      this.showPasswordError = this.passwordErrors.length > 0;
+      return !this.showPasswordError;
+    },
+    calculateStrength() {
+      let strength = 0;
+      const password = this.password;
+
+      if (password.length >= 8) strength++;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[a-z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+      this.passwordStrength = strength;
+    },
     validate() {
       this.showNameError = this.name.trim() === '';
       this.showLastnameError = this.lastname.trim() === '';
+      this.showDayError = this.selectedDay === null;
+      this.showMonthError = this.selectedMonth === null;
+      this.showYearError = this.selectedYear === null;
+      this.showGenderError = this.gender === null;
+      const isContactValid = this.validateContact();
+      const isPasswordValid = this.validatePassword();
+
+      // Validation additonal for gender "Personalizado"
+      if(this.gender === 'Personalizado'){
+        this.showPronounError = this.pronoun === null;
+        this.showCustomGenderError = this.customGender.trim() === '';
+      } else {
+        this.showPronounError = false;
+        this.showCustomGenderError = false;
+      }
+
+      // Return true only if all fields are valid
+      return !this.showNameError && !this.showLastnameError &&
+          !this.showDayError && !this.showMonthError &&
+          !this.showYearError && !this.showGenderError &&
+          isContactValid && isPasswordValid &&
+          !(this.gender === 'Personalizado' && (this.showPronounError || this.showCustomGenderError));
     },
     navigateToLogin() {
       this.$router.push("/login");
-    }
+    },
   }
 }
 </script>
@@ -120,34 +216,72 @@ export default {
           <div class="form-group">
             <label class="form-label">Date of birth</label>
             <div class="date-fields">
-              <pv-dropdown
-                  v-model="selectedDay"
-                  :options="dayOptions"
-                  placeholder="Day"
-                  optionLabel="label"
-                  class="date-field"
-              ></pv-dropdown>
-              <pv-dropdown
-                  v-model="selectedMonth"
-                  :options="monthOptions"
-                  placeholder="Month"
-                  optionLabel="label"
-                  class="date-field"
-              ></pv-dropdown>
-              <pv-dropdown
-                  v-model="selectedYear"
-                  :options="yearOptions"
-                  placeholder="Year"
-                  optionLabel="label"
-                  class="date-field"
-              ></pv-dropdown>
+              <div class="date-field-container">
+                <pv-dropdown
+                    v-model="selectedDay"
+                    :options="dayOptions"
+                    placeholder="Day"
+                    optionLabel="label"
+                    :class="{'p-invalid': showDayError}"
+                    @blur="validate"
+                    class="date-field"
+                ></pv-dropdown>
+                <pv-message
+                    v-if="showDayError"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    class="error-message">
+                  Day is required
+                </pv-message>
+              </div>
+
+              <div class="date-field-container">
+                <pv-dropdown
+                    v-model="selectedMonth"
+                    :options="monthOptions"
+                    placeholder="Month"
+                    optionLabel="label"
+                    :class="{'p-invalid': showMonthError}"
+                    @blur="validate"
+                    class="date-field"
+                ></pv-dropdown>
+                <pv-message
+                    v-if="showMonthError"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    class="error-message">
+                  Month is required
+                </pv-message>
+              </div>
+
+              <div class="date-field-container">
+                <pv-dropdown
+                    v-model="selectedYear"
+                    :options="yearOptions"
+                    placeholder="Year"
+                    optionLabel="label"
+                    :class="{'p-invalid': showYearError}"
+                    @blur="validate"
+                    class="date-field"
+                ></pv-dropdown>
+                <pv-message
+                    v-if="showYearError"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    class="error-message">
+                  Year is required
+                </pv-message>
+              </div>
             </div>
           </div>
 
           <!-- Gender Selection -->
           <div class="form-group">
             <label class="form-label">Gender</label>
-            <div class="gender-grid">
+            <div class="gender-grid" :class="{'p-invalid-group': showGenderError}">
               <div class="gender-option">
                 <pv-radio-button v-model="gender" input-id="mujer" value="Mujer"></pv-radio-button>
                 <label for="mujer">Mujer</label>
@@ -161,23 +295,57 @@ export default {
                 <label for="personalizado">Personalizado</label>
               </div>
             </div>
+            <pv-message
+                v-if="showGenderError"
+                severity="error"
+                size="small"
+                variant="simple"
+                class="error-message">
+              Gender is required
+            </pv-message>
           </div>
 
           <!-- Custom Gender (conditional) -->
           <div v-if="gender === 'Personalizado'" class="custom-gender-container">
-            <pv-dropdown
-                v-model="pronoun"
-                :options="pronounOptions"
-                optionLabel="label"
-                placeholder="Selecciona tu pronombre"
-                class="pronoun-dropdown"
-            />
+            <div class="form-group">
+              <pv-dropdown
+                  v-model="pronoun"
+                  :options="pronounOptions"
+                  optionLabel="label"
+                  placeholder="Selecciona tu pronombre"
+                  :class="{'p-invalid': showPronounError}"
+                  @blur="validate"
+                  class="pronoun-dropdown"
+              />
+              <pv-message
+                  v-if="showPronounError"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  class="error-message">
+                Pronoun is required
+              </pv-message>
+            </div>
+
             <p class="custom-gender-text">Your username will be visible to everyone.</p>
-            <pv-input-text
-                v-model="customGender"
-                placeholder="Gender (optional)"
-                class="custom-gender-input"
-            ></pv-input-text>
+
+            <div class="form-group">
+              <pv-input-text
+                  v-model="customGender"
+                  placeholder="Gender (optional)"
+                  :class="{'p-invalid': showCustomGenderError}"
+                  @blur="validate"
+                  class="custom-gender-input"
+              ></pv-input-text>
+              <pv-message
+                  v-if="showCustomGenderError"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  class="error-message">
+                Gender is required
+              </pv-message>
+            </div>
           </div>
 
           <!-- Contact Info -->
@@ -185,8 +353,18 @@ export default {
             <pv-input-text
                 v-model="contactInfo"
                 placeholder="Phone or email address"
+                :class="{'p-invalid': showContactError}"
+                @blur="validateContact"
                 class="contact-input"
             ></pv-input-text>
+            <pv-message
+                v-if="showContactError"
+                severity="error"
+                size="small"
+                variant="simple"
+                class="error-message">
+              {{ contactErrorMsg }}
+            </pv-message>
           </div>
 
           <!-- Password -->
@@ -194,11 +372,36 @@ export default {
             <pv-input-text
                 type="password"
                 v-model="password"
-                :feedback="false"
                 placeholder="Password"
+                :class="{'p-invalid': showPasswordError}"
+                @blur="validatePassword"
+                @input="calculateStrength"
                 class="password-input"
                 toggleMask
             ></pv-input-text>
+
+            <!-- Indicador de fortaleza y mensajes de error (igual que antes) -->
+            <div v-if="password.length > 0" class="password-strength">
+              <div class="strength-bar" :class="{'weak': passwordStrength <= 2, 'medium': passwordStrength === 3, 'strong': passwordStrength >= 4}"></div>
+              <span class="strength-text">
+      {{
+                  passwordStrength <= 2 ? 'Weak' :
+                      passwordStrength === 3 ? 'Medium' : 'Strong'
+                }}
+    </span>
+            </div>
+
+            <div v-if="showPasswordError" class="password-errors">
+              <pv-message
+                  v-for="(error, index) in passwordErrors"
+                  :key="index"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  class="error-message">
+                {{ error }}
+              </pv-message>
+            </div>
           </div>
 
           <!-- Submit Button -->
@@ -212,14 +415,14 @@ export default {
       </template>
       <template #footer>
         <div class ="links-container">
-            <a href="#" @click.prevent="navigateToLogin()" class="text-link">¿Do you have account?</a>
+          <a href="#" @click.prevent="navigateToLogin()" class="text-link">¿Do you have account?</a>
         </div>
       </template>
     </pv-card>
   </div>
 </template>
 
-<style scoped>
+<style>
 /* Base Styles (Mobile First) */
 .links-container {
   display: flex;
@@ -275,8 +478,26 @@ export default {
   gap: 0.75rem;
 }
 
+@media (min-width: 768px) {
+  .date-fields {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.date-field-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .date-field {
   width: 100%;
+}
+
+.error-messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 /* Gender Options */
@@ -378,5 +599,45 @@ export default {
   .text-center {
     font-size: 1.75rem;
   }
+}
+
+/* Password Strength */
+.password-strength {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.strength-bar {
+  height: 4px;
+  flex-grow: 1;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-bar.weak {
+  background: linear-gradient(90deg, #ff5252 33%, #e0e0e0 33%);
+}
+
+.strength-bar.medium {
+  background: linear-gradient(90deg, #ffb74d 66%, #e0e0e0 66%);
+}
+
+.strength-bar.strong {
+  background: #4caf50;
+}
+
+.strength-text {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.password-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
 }
 </style>

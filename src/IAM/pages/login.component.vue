@@ -13,7 +13,4 @@ export default {
 </template>
 
 <style>
-p{
-  color: black;
-}
 </style>
