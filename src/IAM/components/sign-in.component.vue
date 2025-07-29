@@ -11,6 +11,12 @@ import {
 export default {
   name: "sign-in",
   components: {PvButton, PvFloatLabel, PvCard, PvInputText, PvDialog, PvMessage},
+  props: {
+    users: {
+      type: Array,
+      required: true
+    }
+  },
   data() {
     return {
       contactInfo: '',
@@ -21,9 +27,11 @@ export default {
       contactErrorMsg: '',
       showPasswordError: false,
       passwordErrorMsg: '',
+      loginError: false,
+      loginErrorMsg: ''
     }
   },
-  methods:{
+  methods: {
     validateContact() {
       const contact = this.contactInfo.trim();
       if (contact === '') {
@@ -56,11 +64,42 @@ export default {
       this.showPasswordError = false;
       return true;
     },
-    navigateToRegister(){
-      this.$router.push("/register");
+    handleSubmit() {
+      // Reset error states
+      this.loginError = false;
+
+      // Validate form fields
+      const isContactValid = this.validateContact();
+      const isPasswordValid = this.validatePassword();
+
+      if (!isContactValid || !isPasswordValid) {
+        return;
+      }
+
+      // Find user by contact info
+      const user = this.users.find(u =>
+          u.contact_info === this.contactInfo.trim()
+      );
+
+      if (!user) {
+        this.loginError = true;
+        this.loginErrorMsg = 'User not found';
+        return;
+      }
+
+      // Check password (in a real app, this would be hashed comparison)
+      if (user.password !== this.password) {
+        this.loginError = true;
+        this.loginErrorMsg = 'Incorrect password';
+        return;
+      }
+
+      // Login successful - store user data and redirect
+      this.$emit('login-success', user);
+      this.$router.push('/home'); // Redirect to home page
     },
-    navigateToHome(){
-      this.$router.push("/home");
+    navigateToRegister() {
+      this.$router.push("/register");
     },
     showForgotPasswordDialog() {
       this.forgotPasswordDialogVisible = true;
@@ -78,6 +117,12 @@ export default {
 
       <template #content>
         <p class="description">Register to see photos and videos of your friends</p>
+
+        <div v-if="loginError" class="error-message mb-3">
+          <pv-message severity="error" size="small" variant="simple">
+            {{ loginErrorMsg }}
+          </pv-message>
+        </div>
 
         <div class="input-group">
           <pv-float-label variant="in" class="full-width-input">
@@ -122,7 +167,12 @@ export default {
           </pv-message>
         </div>
 
-        <pv-button label="Submit" severity="success" class="submit-button" @click.prevent = "navigateToHome()"/>
+        <pv-button
+            label="Submit"
+            severity="success"
+            class="submit-button"
+            @click.prevent="handleSubmit"
+        />
 
         <div class="links-container">
           <a href="#" @click.prevent="showForgotPasswordDialog" class="forgot-password">Forgot password?</a>
@@ -175,6 +225,10 @@ export default {
   margin-top: 0.25rem;
   font-size: 0.85rem;
   color: #f44336;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
 }
 
 /* Rest of your existing styles remain the same */
