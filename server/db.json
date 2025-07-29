@@ -3,30 +3,30 @@
     {
       "id": 1,
       "name": "John Doe",
-      "email": "jd@gmail.com",
+      "contact_info": "jd@gmail.com",
       "password": "123",
-      "subscription_plan": "free"
+      "subscription_plan": 1
     },
     {
       "id": 2,
       "name": "Jane Smith",
-      "email": "js@gmail.com",
+      "contact_info": "js@gmail.com",
       "password": "456",
-      "subscription_plan": "premium"
+      "subscription_plan": 2
     },
     {
       "id": 3,
       "name": "Alice Johnson",
-      "email": "aj@gmail.com",
+      "contact_info": "aj@gmail.com",
       "password": "abc",
-      "subscription_plan": "free"
+      "subscription_plan": 1
     },
     {
       "id": 4,
       "name": "Bob Brown",
-      "email": "bb@gmail.com",
+      "contact_info": "bb@gmail.com",
       "password": "789",
-      "subscription_plan": "free"
+      "subscription_plan": 1
     }
   ],
   "subscription_plans": [
