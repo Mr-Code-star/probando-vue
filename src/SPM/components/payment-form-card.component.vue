@@ -22,7 +22,7 @@ export default {
       cvc: '',
       addressLine1: '',
       addressLine2: '',
-      district: '',       // Para Perú (Distrito)
+      district: '',       // Para Perú (Distrito) 1
       city: '',           // Para otros países (Ciudad)
       postalCode: '',
       selectedCountry: {name: 'Perú', code: 'PE'},
@@ -322,4 +322,5 @@ export default {
     gap: 0.5rem;
   }
 }
+
 </style>
