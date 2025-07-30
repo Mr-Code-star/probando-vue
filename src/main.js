@@ -16,7 +16,9 @@ import {
     Message,
     Dropdown,
     RadioButton,
-    Dialog, Select
+    Dialog,
+    InputMask,
+    Checkbox
 } from "primevue";
 import router from "./router/index.js";
 import i18n from "./i18n/index.js";
@@ -53,6 +55,8 @@ app.component('pv-message', Message)
 app.component('pv-dropdown', Dropdown)
 app.component('pv-radio-button', RadioButton)
 app.component('pv-dialog', Dialog)
+app.component('pv-input-mask', InputMask)
+app.component('pv-checkbox', Checkbox)
 app.use(i18n)
 app.use(router)
 app.mount('#app')

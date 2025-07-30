@@ -4,22 +4,101 @@ import {
   Card as PvCard,
   FloatLabel as PvFloatLabel,
   InputText as PvInputText,
-  Dialog as PvDialog
+  Dialog as PvDialog,
+  Message as PvMessage
 } from "primevue";
 
 export default {
   name: "sign-in",
-  components: {PvButton, PvFloatLabel, PvCard, PvInputText, PvDialog},
-  data() {
-    return {
-      email: '',
-      password: '',
-      forgotPasswordDialogVisible: false,
-      recoveryEmail: ''
+  components: {PvButton, PvFloatLabel, PvCard, PvInputText, PvDialog, PvMessage},
+  props: {
+    users: {
+      type: Array,
+      required: true
     }
   },
-  methods:{
-    navigateToRegister(){
+  data() {
+    return {
+      contactInfo: '',
+      password: '',
+      forgotPasswordDialogVisible: false,
+      recoveryEmail: '',
+      showContactError: false,
+      contactErrorMsg: '',
+      showPasswordError: false,
+      passwordErrorMsg: '',
+      loginError: false,
+      loginErrorMsg: ''
+    }
+  },
+  methods: {
+    validateContact() {
+      const contact = this.contactInfo.trim();
+      if (contact === '') {
+        this.showContactError = true;
+        this.contactErrorMsg = 'Email or phone number is required';
+        return false;
+      }
+
+      // Validate if it's email or phone
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+      const isPhone = /^[0-9]{9,15}$/.test(contact);
+
+      if (!isEmail && !isPhone) {
+        this.showContactError = true;
+        this.contactErrorMsg = 'Please enter a valid email or phone number';
+        return false;
+      }
+
+      this.showContactError = false;
+      return true;
+    },
+    validatePassword() {
+      const password = this.password.trim();
+      if (password === '') {
+        this.showPasswordError = true;
+        this.passwordErrorMsg = 'Password is required';
+        return false;
+      }
+
+      this.showPasswordError = false;
+      return true;
+    },
+    handleSubmit() {
+      // Reset error states
+      this.loginError = false;
+
+      // Validate form fields
+      const isContactValid = this.validateContact();
+      const isPasswordValid = this.validatePassword();
+
+      if (!isContactValid || !isPasswordValid) {
+        return;
+      }
+
+      // Find user by contact info
+      const user = this.users.find(u =>
+          u.contact_info === this.contactInfo.trim()
+      );
+
+      if (!user) {
+        this.loginError = true;
+        this.loginErrorMsg = 'User not found';
+        return;
+      }
+
+      // Check password (in a real app, this would be hashed comparison)
+      if (user.password !== this.password) {
+        this.loginError = true;
+        this.loginErrorMsg = 'Incorrect password';
+        return;
+      }
+
+      // Login successful - store user data and redirect
+      this.$emit('login-success', user);
+      this.$router.push('/home'); // Redirect to home page
+    },
+    navigateToRegister() {
       this.$router.push("/register");
     },
     showForgotPasswordDialog() {
@@ -39,11 +118,32 @@ export default {
       <template #content>
         <p class="description">Register to see photos and videos of your friends</p>
 
+        <div v-if="loginError" class="error-message mb-3">
+          <pv-message severity="error" size="small" variant="simple">
+            {{ loginErrorMsg }}
+          </pv-message>
+        </div>
+
         <div class="input-group">
           <pv-float-label variant="in" class="full-width-input">
-            <pv-input-text id="in_label" v-model="email" autocomplete="off" class="full-width" />
-            <label for="in_label">Email</label>
+            <pv-input-text
+                id="in_label"
+                v-model="contactInfo"
+                autocomplete="off"
+                class="full-width"
+                :class="{'p-invalid': showContactError}"
+                @blur="validateContact"
+            />
+            <label for="in_label">Email or Phone Number</label>
           </pv-float-label>
+          <pv-message
+              v-if="showContactError"
+              severity="error"
+              size="small"
+              variant="simple"
+              class="error-message">
+            {{ contactErrorMsg }}
+          </pv-message>
         </div>
 
         <div class="input-group">
@@ -51,13 +151,28 @@ export default {
             <pv-input-text
                 type="password"
                 v-model="password"
-                class = "full-width"
+                class="full-width"
+                :class="{'p-invalid': showPasswordError}"
+                @blur="validatePassword"
             />
             <label for="password">Password</label>
           </pv-float-label>
+          <pv-message
+              v-if="showPasswordError"
+              severity="error"
+              size="small"
+              variant="simple"
+              class="error-message">
+            {{ passwordErrorMsg }}
+          </pv-message>
         </div>
 
-        <pv-button label="Submit" severity="success" class="submit-button"/>
+        <pv-button
+            label="Submit"
+            severity="success"
+            class="submit-button"
+            @click.prevent="handleSubmit"
+        />
 
         <div class="links-container">
           <a href="#" @click.prevent="showForgotPasswordDialog" class="forgot-password">Forgot password?</a>
@@ -104,7 +219,19 @@ export default {
   </div>
 </template>
 
-<style scoped>
+<style>
+/* Add this to your existing styles */
+.error-message {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #f44336;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+/* Rest of your existing styles remain the same */
 .sign-in-container {
   display: flex;
   justify-content: center;
