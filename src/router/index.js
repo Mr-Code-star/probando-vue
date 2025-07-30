@@ -9,7 +9,7 @@ import {createRouter, createWebHistory} from "vue-router";
 //const AboutComponent = () => import('../public/pages/about.component.vue');
 //const CategoryManagementComponent = () => import('../publishing/pages/category-management.component.vue');
 const PageHomeComponent = () => import("../public/pages/page-home.component.vue")
-const SubscriptionPlanManagerComponent = () => import("../suscription-and-paymentmethods/pages/page-subscription-plan-management.vue")
+const SubscriptionPlanManagerComponent = () => import("../SPM/pages/subscription-plan-management.component.vue")
 const PageNotFoundComponent = () => import('../public/pages/page-not-found.component.vue');
 
 const routes = [
