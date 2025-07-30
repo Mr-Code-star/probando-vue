@@ -1,9 +1,11 @@
 <script>
+import {Button as PvButton} from "primevue";
 
 export default {
-  name: "plan-card.component",
-  props:{
-    plan:{
+  name: 'subscription-item',
+  components: {PvButton},
+  props: {
+    plan: {
       type: Object,
       required: true
     }
@@ -12,24 +14,24 @@ export default {
 </script>
 
 <template>
-  <div class = "plan-card">
-      <div class = "plan-header">
-        <h3>{{plan.name}}</h3>
-        <div class = "plan-details">${{plan.price.toFixed(2)}}</div>
-      </div>
+  <div class = "plan-item">
+    <div class = "plan-header">
+      <h3>{{plan.name}}</h3>
+      <div class = "plan-details">${{plan.price.toFixed(2)}}</div>
+    </div>
 
-      <ul class = "plan-features">
-        <li v-for="(feature, index) in plan.features" :key="index">
-            {{feature}}
-        </li>
-      </ul>
+    <ul class = "plan-features">
+      <li v-for="(feature, index) in plan.features" :key="index">
+        {{feature}}
+      </li>
+    </ul>
 
     <button class="select-button">Select Plan</button>
   </div>
 </template>
 
 <style>
-.plan-card {
+.plan-item {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 20px;
@@ -38,7 +40,7 @@ export default {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: 0.2s;
 }
-.plan-card:hover {
+.plan-item:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
@@ -56,11 +58,6 @@ export default {
   color: #333;
 }
 
-.plan-price {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2c3e50;
-}
 
 .plan-features {
   list-style-type: none;
