@@ -22,7 +22,8 @@ export default {
       cvc: '',
       addressLine1: '',
       addressLine2: '',
-      district: '',
+      district: '',       // Para Perú (Distrito)
+      city: '',           // Para otros países (Ciudad)
       postalCode: '',
       selectedCountry: {name: 'Perú', code: 'PE'},
       selectedProvince: null,
@@ -140,17 +141,32 @@ export default {
           </div>
 
           <div class="grid location-details">
+            <!-- Campo CIUDAD (solo para NO Perú) -->
             <div class="col-6" v-if="!isPeruSelected">
+              <div class="field">
+                <pv-input-text
+                    id="city"
+                    v-model="city"
+                    class="input-field city"
+                    placeholder="Ciudad"
+                />
+              </div>
+            </div>
+
+            <!-- Campo DISTRITO (solo para Perú) -->
+            <div class="col-6" v-if="isPeruSelected">
               <div class="field">
                 <pv-input-text
                     id="district"
                     v-model="district"
                     class="input-field district"
-                    placeholder="Ciudad"
+                    placeholder="Distrito"
                 />
               </div>
             </div>
-            <div :class="isPeruSelected ? 'col-12' : 'col-6'">
+
+            <!-- Código Postal (siempre visible) -->
+            <div class="col-6">
               <div class="field">
                 <pv-input-text
                     id="postalCode"
@@ -162,7 +178,8 @@ export default {
             </div>
           </div>
 
-          <div class="field" v-if="isPeruSelected"> <!-- Solo visible para Perú -->
+          <!-- Provincia (solo para Perú) -->
+          <div class="field" v-if="isPeruSelected">
             <pv-dropdown
                 v-model="selectedProvince"
                 :options="provinces"
@@ -178,10 +195,10 @@ export default {
       <div class="field checkbox-container">
         <pv-checkbox v-model="termsAccepted" :binary="true" class="checkbox"></pv-checkbox>
         <span class="checkbox-label">
-              Se te cobrará mensualmente en función de las licencias que tengas hasta que canceles.
-              Al suscribirte, aceptas las condiciones comerciales y nos autorizas a almacenar
-              tu método de pago para renovaciones y otras compras.
-          </span>
+          Se te cobrará mensualmente en función de las licencias que tengas hasta que canceles.
+          Al suscribirte, aceptas las condiciones comerciales y nos autorizas a almacenar
+          tu método de pago para renovaciones y otras compras.
+        </span>
       </div>
       <pv-button
           label="Subscribirse"
