@@ -7,6 +7,14 @@ import {
   Message as PvMessage, Password as PvPassword,
   RadioButton as PvRadioButton
 } from "primevue";
+import {
+  isNotEmpty,
+  validateContact,
+  validatePassword,
+  validateDateFields,
+  validateGenderFields,
+  getPasswordStrengthLabel
+} from "../../shared/utils/validation.util.js";
 
 export default {
   name: "sign-up",
@@ -67,93 +75,51 @@ export default {
   },
   methods: {
     validateContact() {
-      const contact = this.contactInfo.trim();
-      if (contact === '') {
-        this.showContactError = true;
-        this.contactErrorMsg = 'Phone or email is required';
-        return false;
-      }
-
-      // Validar si es email o teléfono
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
-      const isPhone = /^[0-9]{9,15}$/.test(contact); // Ajusta el rango según necesites
-
-      if (!isEmail && !isPhone) {
-        this.showContactError = true;
-        this.contactErrorMsg = 'Please enter a valid email or phone number';
-        return false;
-      }
-
-      this.showContactError = false;
-      return true;
+      const result = validateContact(this.contactInfo);
+      this.showContactError = !result.isValid;
+      this.contactErrorMsg = result.errorMsg;
+      return result.isValid;
     },
     validatePassword() {
-      this.passwordErrors = [];
-      const password = this.password.trim();
-
-      if (password === '') {
-        this.showPasswordError = true;
-        this.passwordErrors.push('Password is required');
-        return false;
-      }
-
-      // Validar fortaleza
-      if (password.length < 8) {
-        this.passwordErrors.push('At least 8 characters');
-      }
-      if (!/[A-Z]/.test(password)) {
-        this.passwordErrors.push('At least one uppercase letter');
-      }
-      if (!/[a-z]/.test(password)) {
-        this.passwordErrors.push('At least one lowercase letter');
-      }
-      if (!/[0-9]/.test(password)) {
-        this.passwordErrors.push('At least one number');
-      }
-      if (!/[^A-Za-z0-9]/.test(password)) {
-        this.passwordErrors.push('At least one special character');
-      }
-
-      this.showPasswordError = this.passwordErrors.length > 0;
-      return !this.showPasswordError;
+      const result = validatePassword(this.password);
+      this.passwordErrors = result.errors;
+      this.showPasswordError = !result.isValid;
+      this.passwordStrength = result.strength;
+      return result.isValid;
     },
     calculateStrength() {
-      let strength = 0;
-      const password = this.password;
-
-      if (password.length >= 8) strength++;
-      if (/[A-Z]/.test(password)) strength++;
-      if (/[a-z]/.test(password)) strength++;
-      if (/[0-9]/.test(password)) strength++;
-      if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-      this.passwordStrength = strength;
+      const result = validatePassword(this.password);
+      this.passwordStrength = result.strength;
     },
     validate() {
-      this.showNameError = this.name.trim() === '';
-      this.showLastnameError = this.lastname.trim() === '';
-      this.showDayError = this.selectedDay === null;
-      this.showMonthError = this.selectedMonth === null;
-      this.showYearError = this.selectedYear === null;
-      this.showGenderError = this.gender === null;
+      this.showNameError = !isNotEmpty(this.name);
+      this.showLastnameError = !isNotEmpty(this.lastname);
+
+      const dateValidation = validateDateFields({
+        day: this.selectedDay,
+        month: this.selectedMonth,
+        year: this.selectedYear
+      });
+      this.showDayError = dateValidation.errors.day;
+      this.showMonthError = dateValidation.errors.month;
+      this.showYearError = dateValidation.errors.year;
+
+      const genderValidation = validateGenderFields(
+          this.gender,
+          this.pronoun,
+          this.customGender
+      );
+      this.showGenderError = genderValidation.errors.gender;
+      this.showPronounError = genderValidation.errors.pronoun;
+      this.showCustomGenderError = genderValidation.errors.customGender;
+
       const isContactValid = this.validateContact();
       const isPasswordValid = this.validatePassword();
 
-      // Validation additonal for gender "Personalizado"
-      if(this.gender === 'Personalizado'){
-        this.showPronounError = this.pronoun === null;
-        this.showCustomGenderError = this.customGender.trim() === '';
-      } else {
-        this.showPronounError = false;
-        this.showCustomGenderError = false;
-      }
-
-      // Return true only if all fields are valid
       return !this.showNameError && !this.showLastnameError &&
-          !this.showDayError && !this.showMonthError &&
-          !this.showYearError && !this.showGenderError &&
-          isContactValid && isPasswordValid &&
-          !(this.gender === 'Personalizado' && (this.showPronounError || this.showCustomGenderError));
+          dateValidation.isValid &&
+          genderValidation.isValid &&
+          isContactValid && isPasswordValid;
     },
     navigateToLogin() {
       this.$router.push("/login");
