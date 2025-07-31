@@ -124,6 +124,9 @@ export default {
     navigateToLogin() {
       this.$router.push("/login");
     },
+    navigateToSubscription(){
+      this.$router.push("/subscriptions");
+    }
   }
 }
 </script>
@@ -376,6 +379,7 @@ export default {
               severity="success"
               class="submit-button"
               type="submit"
+              @click.prevent="navigateToSubscription()"
           />
         </form>
       </template>
