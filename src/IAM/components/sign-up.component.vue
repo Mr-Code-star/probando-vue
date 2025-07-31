@@ -4,7 +4,8 @@ import {
   Card as PvCard,
   Dropdown as PvDropdown,
   InputText as PvInputText,
-  Message as PvMessage, Password as PvPassword,
+  Message as PvMessage,
+  Password as PvPassword,
   RadioButton as PvRadioButton
 } from "primevue";
 import {
@@ -12,9 +13,10 @@ import {
   validateContact,
   validatePassword,
   validateDateFields,
-  validateGenderFields,
-  getPasswordStrengthLabel
+  validateGenderFields
 } from "../../shared/utils/validation.util.js";
+import { UserService } from "../services/user.service.js";
+import { User } from "../model/user.entity.js";
 
 export default {
   name: "sign-up",
@@ -26,7 +28,7 @@ export default {
       lastname: '',
       contactInfo: '',
       contactErrorMsg: '',
-      passwordStrength: 0 ,
+      passwordStrength: 0,
       passwordErrors: [],
       gender: null,
       pronoun: null,
@@ -67,10 +69,12 @@ export default {
       }),
       customGender: '',
       pronounOptions: [
-        { label: 'Female: "greet her for her birthday"\n', value:  'Female: greet her for her birthday' },
+        { label: 'Female: "greet her for her birthday"\n', value: 'Female: greet her for her birthday' },
         { label: 'Masculine: "greet him for his birthday"\n', value: 'Masculine: greet him for his birthday' },
         { label: 'Neutral: "Greet him/her for his/her birthday"\n', value: 'Neutral: Greet him/her for his/her birthday' }
-      ]
+      ],
+      isLoading: false,
+      registerError: null
     }
   },
   methods: {
@@ -124,7 +128,49 @@ export default {
     navigateToLogin() {
       this.$router.push("/login");
     },
-    navigateToSubscription(){
+    async register() {
+      if (!this.validate()) {
+        return;
+      }
+
+      this.isLoading = true;
+      this.registerError = null;
+
+      try {
+        const userService = new UserService();
+
+        // Extraer los valores numéricos de manera segura
+        const day = this.selectedDay?.value ?? this.selectedDay;
+        const month = this.selectedMonth?.value ?? this.selectedMonth;
+        const year = this.selectedYear?.value ?? this.selectedYear;
+
+        // Validar que los valores sean números
+        if (isNaN(day) || isNaN(month) || isNaN(year)) {
+          throw new Error('Invalid date values');
+        }
+
+        // Crear objeto de usuario
+        const userData = {
+          name: this.name,
+          lastname: this.lastname,
+          contact_info: this.contactInfo,
+          password: this.password,
+          birth_date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+          gender: this.gender === 'Personalizado' ? this.customGender : this.gender,
+          pronoun: this.pronoun
+        };
+
+        const response = await userService.create(userData);
+        this.navigateToSubscription();
+
+      } catch (error) {
+        console.error('Registration error:', error);
+        this.registerError = error.response?.data?.message || 'Registration failed. Please try again.';
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    navigateToSubscription() {
       this.$router.push("/subscriptions");
     }
   }
@@ -139,7 +185,7 @@ export default {
       </template>
       <template #content>
         <p class="description">Register if you are new user</p>
-        <form @submit.prevent="validate" class="sign-up-form">
+        <form @submit.prevent="register" class="sign-up-form">
 
           <!-- Name Input -->
           <div class="form-group">
@@ -191,6 +237,7 @@ export default {
                     :options="dayOptions"
                     placeholder="Day"
                     optionLabel="label"
+                    option-value="value"
                     :class="{'p-invalid': showDayError}"
                     @blur="validate"
                     class="date-field"
@@ -211,6 +258,7 @@ export default {
                     :options="monthOptions"
                     placeholder="Month"
                     optionLabel="label"
+                    option-value="value"
                     :class="{'p-invalid': showMonthError}"
                     @blur="validate"
                     class="date-field"
@@ -230,6 +278,7 @@ export default {
                     v-model="selectedYear"
                     :options="yearOptions"
                     placeholder="Year"
+                    option-value="value"
                     optionLabel="label"
                     :class="{'p-invalid': showYearError}"
                     @blur="validate"
@@ -379,7 +428,7 @@ export default {
               severity="success"
               class="submit-button"
               type="submit"
-              @click.prevent="navigateToSubscription()"
+              :loading="isLoading"
           />
         </form>
       </template>
