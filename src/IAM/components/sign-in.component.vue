@@ -10,7 +10,7 @@ import {
 import {
   validateContact,
   validateLogin
-} from "../../shared/";
+} from "../../shared/utils/validation.util.js";
 export default {
   name: "sign-in",
   components: {PvButton, PvFloatLabel, PvCard, PvInputText, PvDialog, PvMessage},
