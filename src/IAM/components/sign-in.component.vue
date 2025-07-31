@@ -7,7 +7,10 @@ import {
   Dialog as PvDialog,
   Message as PvMessage
 } from "primevue";
-
+import {
+  validateContact,
+  validateLogin
+} from "../../shared/";
 export default {
   name: "sign-in",
   components: {PvButton, PvFloatLabel, PvCard, PvInputText, PvDialog, PvMessage},
@@ -33,25 +36,45 @@ export default {
   },
   methods: {
     validateContact() {
-      const contact = this.contactInfo.trim();
-      if (contact === '') {
-        this.showContactError = true;
-        this.contactErrorMsg = 'Email or phone number is required';
-        return false;
-      }
+      const result = validateContact(this.contactInfo);
+      this.showContactError = !result.isValid;
+      this.contactErrorMsg = result.errorMsg;
+      return result.isValid;
+    },
 
-      // Validate if it's email or phone
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
-      const isPhone = /^[0-9]{9,15}$/.test(contact);
-
-      if (!isEmail && !isPhone) {
-        this.showContactError = true;
-        this.contactErrorMsg = 'Please enter a valid email or phone number';
-        return false;
-      }
-
+    handleSubmit() {
+      // Reset error states
+      this.loginError = false;
       this.showContactError = false;
-      return true;
+      this.showPasswordError = false;
+
+      // Validar credenciales
+      const validation = validateLogin(
+          this.contactInfo,
+          this.password,
+          this.users
+      );
+
+      if (!validation.isValid) {
+        // Mostrar el error apropiado
+        if (validation.errorMsg === 'User not found' ||
+            validation.errorMsg === 'Incorrect password') {
+          this.loginError = true;
+          this.loginErrorMsg = validation.errorMsg;
+        } else if (validation.errorMsg.includes('email') ||
+            validation.errorMsg.includes('phone')) {
+          this.showContactError = true;
+          this.contactErrorMsg = validation.errorMsg;
+        } else {
+          this.showPasswordError = true;
+          this.passwordErrorMsg = validation.errorMsg;
+        }
+        return;
+      }
+
+      // Login exitoso
+      this.$emit('login-success', validation.user);
+      this.$router.push('/home');
     },
     validatePassword() {
       const password = this.password.trim();
@@ -63,40 +86,6 @@ export default {
 
       this.showPasswordError = false;
       return true;
-    },
-    handleSubmit() {
-      // Reset error states
-      this.loginError = false;
-
-      // Validate form fields
-      const isContactValid = this.validateContact();
-      const isPasswordValid = this.validatePassword();
-
-      if (!isContactValid || !isPasswordValid) {
-        return;
-      }
-
-      // Find user by contact info
-      const user = this.users.find(u =>
-          u.contact_info === this.contactInfo.trim()
-      );
-
-      if (!user) {
-        this.loginError = true;
-        this.loginErrorMsg = 'User not found';
-        return;
-      }
-
-      // Check password (in a real app, this would be hashed comparison)
-      if (user.password !== this.password) {
-        this.loginError = true;
-        this.loginErrorMsg = 'Incorrect password';
-        return;
-      }
-
-      // Login successful - store user data and redirect
-      this.$emit('login-success', user);
-      this.$router.push('/home'); // Redirect to home page
     },
     navigateToRegister() {
       this.$router.push("/register");
