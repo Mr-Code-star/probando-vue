@@ -7,14 +7,12 @@
 
 export class SubscriptionPlan {
     constructor({
-        id = 0,
-        name = '',
-        price = 0.00,
-        features=[]
+                    id = 0,
+                    name = '',
+                    price = 0.00,
                 }) {
         this.id = id;
         this.name = name;
         this.price = price;
-        this.features = features;
     }
 }
