@@ -35,7 +35,7 @@ export function validateContact(contact) {
     if (!isNotEmpty(trimmedContact)) {
         return {
             isValid: false,
-            errorMsg: 'Phone or email is required'
+            errorMsg: 'sign-in.error.contactRequired' // Updated to use i18n key
         };
     }
 
@@ -45,7 +45,7 @@ export function validateContact(contact) {
     if (!isEmail && !isPhone) {
         return {
             isValid: false,
-            errorMsg: 'Please enter a valid email or phone number'
+            errorMsg: 'sign-in.error.invalidContact' // Updated to use i18n key
         };
     }
 
@@ -54,7 +54,6 @@ export function validateContact(contact) {
         errorMsg: ''
     };
 }
-
 /**
  * Validates password against complexity rules
  * @param {string} password - The password to validate
@@ -187,7 +186,7 @@ export function validateLogin(contact, password, users) {
     if (!isNotEmpty(password)) {
         return {
             isValid: false,
-            errorMsg: 'Password is required',
+            errorMsg: 'sign-in.error.passwordRequired', // Updated to use i18n key
             user: null
         };
     }
@@ -197,16 +196,16 @@ export function validateLogin(contact, password, users) {
     if (!user) {
         return {
             isValid: false,
-            errorMsg: 'User not found',
+            errorMsg: 'sign-in.error.userNotFound', // Updated to use i18n key
             user: null
         };
     }
 
-    // Verificar contraseña (en una app real sería comparación de hashes)
+    // Verificar contraseña
     if (user.password !== password) {
         return {
             isValid: false,
-            errorMsg: 'Incorrect password',
+            errorMsg: 'sign-in.error.passwordIncorrect', // Updated to use i18n key
             user: null
         };
     }
