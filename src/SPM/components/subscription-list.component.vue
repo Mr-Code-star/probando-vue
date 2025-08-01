@@ -1,5 +1,4 @@
 <script>
-
 import SubscriptionItem from "./subscription-item.component.vue";
 
 export default {
@@ -11,48 +10,67 @@ export default {
       required: true
     }
   }
-
 }
 </script>
 
 <template>
-<div class = "plans-container">
-  <h2>Available Subscription Plans</h2>
-  <div v-if="subscriptions.length > 0" class="plans-grid">
-    <subscription-item
-        v-for="plan in subscriptions"
-        :key="plan.id"
-        :plan="plan"
-    />
+  <div class="subscription-container">
+    <h1 class="title">{{$t('plans.title')}}</h1>
+    <div class="plans-wrapper">
+      <subscription-item
+          v-for="plan in subscriptions"
+          :key="plan.id"
+          :plan="plan"
+      />
+    </div>
   </div>
-  <p v-else>No subscription plans available.</p>
-</div>
 </template>
 
-<style>
-.plans-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.plans-container h2 {
+<style scoped>
+.subscription-container {
   text-align: center;
-  margin-bottom: 30px;
-  color: #2c3e50;
+  padding: 2rem 1rem;
 }
 
-.plans-grid {
+.title {
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.plans-wrapper {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .title {
+    font-size: 1.8rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .plans-grid {
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .plans-wrapper {
     flex-direction: column;
     align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .subscription-container {
+    padding: 1.5rem 0.5rem;
   }
 }
 </style>
