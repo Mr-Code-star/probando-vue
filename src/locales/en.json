@@ -21,5 +21,39 @@
     "email": "Email",
     "password": "Password",
     "confirm-password": "Confirm Password"
+  },
+  "plans": {
+    "popular": "Popular",
+    "title": "Be part of our premium community and get exclusive benefits for you!",
+    "startNow": "Start Now!",
+    "month": "c/month",
+    "premium": {
+      "title": "Premium Plan",
+      "description": "Enjoy the best experience with our Premium Plan, which includes unlimited access to all content, high-quality downloads, and priority support.",
+      "features": {
+        "feature1": "Unlimited access to all content",
+        "feature2": "High-quality downloads",
+        "feature3": "24/7 priority support",
+        "feature4": "Exclusive access to new releases",
+        "feature5": "Up to 10 connected devices",
+        "feature6": "1TB cloud storage",
+        "feature7": "Ad-free content",
+        "feature8": "Early access to beta features"
+
+      }
+    },
+    "standard": {
+      "title": "Standard Plan",
+      "description": "The Standard Plan offers a complete experience with access to basic content, standard-quality downloads, and email support.",
+      "features": {
+        "feature1": "Access to basic content",
+        "feature2": "Standard-quality downloads",
+        "feature3": "Email support",
+        "feature4": "Access to releases with 1-month delay",
+        "feature5": "Up to 3 connected devices",
+        "feature6": "100GB cloud storage",
+        "feature7": "Content with limited ads"
+      }
+    }
   }
 }

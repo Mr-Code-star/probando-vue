@@ -21,5 +21,39 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "confirm-password": "Confirmar contraseña"
+  },
+  "plans": {
+    "popular": "Popular",
+    "title": "¡Sé parte de nuestra comunidad premium y obtén beneficios exclusivos para ti!",
+    "startNow": "¡Empieza ahora!",
+    "month": "c/mes",
+    "premium": {
+      "title": "Plan Premium",
+      "description": "Disfruta de la mejor experiencia con nuestro plan Premium, que incluye acceso ilimitado a todos los contenidos, descargas en alta calidad y soporte prioritario.",
+      "features":{
+        "feature1": "Acceso ilimitado a todos los contenidos",
+        "feature2": "Descargas en alta calidad",
+        "feature3": "Soporte prioritario 24/7",
+        "feature4": "Acceso exclusivo a nuevos lanzamientos",
+        "feature5": "Hasta 10 dispositivos conectados",
+        "feature6": "Almacenamiento en la nube de 1TB",
+        "feature7": "Contenido sin anuncios",
+        "feature8": "Acceso anticipado a funciones beta"
+      }
+    },
+    "standard": {
+      "title": "Plan Estándar",
+      "description": "El Plan Estándar ofrece una experiencia completa con acceso a contenidos básicos, descargas en calidad estándar y soporte por correo electrónico.",
+      "features": {
+        "feature1": "Acceso a contenidos básicos",
+        "feature2": "Descargas en calidad estándar",
+        "feature3": "Soporte por correo electrónico",
+        "feature4": "Acceso a lanzamientos con 1 mes de retraso",
+        "feature5": "Hasta 3 dispositivos conectados",
+        "feature6": "Almacenamiento en la nube de 100GB",
+        "feature7": "Contenido con anuncios limitados"
+      }
+    }
   }
+
 }

@@ -29,13 +29,8 @@ export default {
 </script>
 
 <template>
-  <div class = "page-container">
     <subscription-list :subscriptions="subscriptionsPlans" />
-  </div>
 </template>
 
 <style>
-.page-container {
-  padding: 20px;
-}
 </style>
