@@ -57,12 +57,14 @@ export default {
 
       if (!validation.isValid) {
         // Mostrar el error apropiado
-        if (validation.errorMsg === 'User not found' ||
-            validation.errorMsg === 'Incorrect password') {
+        if (validation.errorMsg === 'sign-in.error.userNotFound' ||
+            validation.errorMsg === 'sign-in.error.passwordIncorrect') {
           this.loginError = true;
           this.loginErrorMsg = validation.errorMsg;
         } else if (validation.errorMsg.includes('email') ||
-            validation.errorMsg.includes('phone')) {
+            validation.errorMsg.includes('phone') ||
+            validation.errorMsg === 'sign-in.error.contactRequired' ||
+            validation.errorMsg === 'sign-in.error.invalidContact') {
           this.showContactError = true;
           this.contactErrorMsg = validation.errorMsg;
         } else {
@@ -80,7 +82,7 @@ export default {
       const password = this.password.trim();
       if (password === '') {
         this.showPasswordError = true;
-        this.passwordErrorMsg = 'Password is required';
+        this.passwordErrorMsg = 'sign-in.error.passwordRequired';
         return false;
       }
 
@@ -101,15 +103,15 @@ export default {
   <div class="sign-in-container">
     <pv-card class="sign-in-card">
       <template #title>
-        <div class="text-center">Sign In</div>
+        <div class="text-center">{{ $t('sign-in.title') }}</div>
       </template>
 
       <template #content>
-        <p class="description">Register to see photos and videos of your friends</p>
+        <p class="description">{{ $t('sign-in.description')}}</p>
 
         <div v-if="loginError" class="error-message mb-3">
           <pv-message severity="error" size="small" variant="simple">
-            {{ loginErrorMsg }}
+            {{ $t(loginErrorMsg) }}
           </pv-message>
         </div>
 
@@ -123,7 +125,7 @@ export default {
                 :class="{'p-invalid': showContactError}"
                 @blur="validateContact"
             />
-            <label for="in_label">Email or Phone Number</label>
+            <label for="in_label">{{$t('sign-in.contactInfo')}}</label>
           </pv-float-label>
           <pv-message
               v-if="showContactError"
@@ -131,7 +133,7 @@ export default {
               size="small"
               variant="simple"
               class="error-message">
-            {{ contactErrorMsg }}
+            {{ $t(contactErrorMsg) }}
           </pv-message>
         </div>
 
@@ -144,7 +146,7 @@ export default {
                 :class="{'p-invalid': showPasswordError}"
                 @blur="validatePassword"
             />
-            <label for="password">Password</label>
+            <label for="password">{{$t('sign-in.password')}}</label>
           </pv-float-label>
           <pv-message
               v-if="showPasswordError"
@@ -152,21 +154,21 @@ export default {
               size="small"
               variant="simple"
               class="error-message">
-            {{ passwordErrorMsg }}
+            {{ $t(passwordErrorMsg) }}
           </pv-message>
         </div>
 
         <pv-button
-            label="Submit"
+            :label="$t('sign-in.button')"
             severity="success"
             class="submit-button"
             @click.prevent="handleSubmit"
         />
 
         <div class="links-container">
-          <a href="#" @click.prevent="showForgotPasswordDialog" class="forgot-password">Forgot password?</a>
-          <span>¿No tienes cuenta?</span>
-          <a href="#" @click.prevent="navigateToRegister" class="register-link">Regístrate</a>
+          <a href="#" @click.prevent="showForgotPasswordDialog" class="forgot-password">{{$t('sign-in.forgotPassword')}}</a>
+          <span>{{$t('sign-in.noAccount')}}</span>
+          <a href="#" @click.prevent="navigateToRegister" class="register-link">{{$t('sign-in.signUp')}}</a>
         </div>
       </template>
     </pv-card>
