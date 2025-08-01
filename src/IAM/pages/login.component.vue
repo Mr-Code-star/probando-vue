@@ -1,6 +1,5 @@
 <script>
 import SignIn from "../components/sign-in.component.vue";
-import {User} from "../model/user.entity.js";
 import {UserService} from "../services/user.service.js";
 import {UserAssembler} from "../services/user.assembler.js";
 

@@ -1,7 +1,20 @@
 {
   "sign-in": {
-    "email": "Email",
-    "password": "Password"
+    "title": "Sign In",
+    "description": "Register to see photos and videos of your friends\n\n",
+    "contactInfo": "Email or Phone Number",
+    "password": "Password",
+    "button": "Sign In",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "error": {
+      "userNotFound": "User not found",
+      "passwordIncorrect": "Incorrect password",
+      "contactRequired": "Email or phone number is required",
+      "invalidContact": "Please enter a valid email or phone number",
+      "passwordRequired": "Password is required"
+    }
   },
   "sign-up": {
     "name": "Name",

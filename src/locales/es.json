@@ -1,7 +1,20 @@
 {
   "sign-in": {
-    "email": "Correo electrónico",
-    "password": "Contraseña"
+    "title": "Iniciar Seccion",
+    "description": "Regístrate para ver fotos y videos de tus amigos\n\n",
+    "contactInfo": "Correo electrónico o telefono",
+    "password": "Contraseña",
+    "button": "Iniciar Sesión",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "signUp": "Regístrate",
+    "error": {
+      "userNotFound": "Usuario no encontrado",
+      "passwordIncorrect": "Contraseña incorrecta",
+      "contactRequired": "Se requiere correo electrónico o número de teléfono",
+      "invalidContact": "Por favor ingrese un correo electrónico o número de teléfono válido",
+      "passwordRequired": "Se requiere contraseña"
+    }
   },
   "sign-up": {
     "name": "Nombre",
