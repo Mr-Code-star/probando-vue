@@ -7,7 +7,8 @@ export class User {
                     password = '',
                     birth_date = null,
                     gender = '',
-                    pronoun = null
+                    pronoun = null,
+                    subscription_plan = 0
                 } = {}) {
         this.id = id;
         this.name = name;
@@ -17,5 +18,6 @@ export class User {
         this.birth_date = birth_date;
         this.gender = gender;
         this.pronoun = pronoun;
+        this.subscription_plan = subscription_plan;
     }
 }
