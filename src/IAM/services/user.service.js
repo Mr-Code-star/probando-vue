@@ -13,7 +13,7 @@ export class UserService{
      * @type {string}
      * @author Baca Camargo Vitaly Arturo, u20231c426
      */
-      resourceEndpoint = import.meta.env.VITE_USERS_ENDPOINT_PATH;
+    resourceEndpoint = import.meta.env.VITE_USERS_ENDPOINT_PATH;
 
     /**
      * @summary Fetches all user resources
@@ -67,5 +67,18 @@ export class UserService{
      */
     getByEmail(email){
         return httpInstance.get(`${this.resourceEndpoint}?contact_info=${email}`);
+    }
+
+    /**
+     * @summary Updates a user's subscription plan
+     * @description This method updates the subscription plan of a user
+     * @param {string} userId - The ID of the user to update
+     * @param {string} planId - The ID of the new subscription plan
+     * @return {Promise<axios.AxiosResponse<any>>}
+     */
+    updateSubscriptionPlan(userId, planId) {
+        return httpInstance.patch(`${this.resourceEndpoint}/${userId}`, {
+            subscription_plan: planId
+        });
     }
 }
