@@ -244,7 +244,6 @@ export default {
 .description {
   text-align: center;
   margin-bottom: 1.5rem;
-  color: white;
 }
 
 .input-group {
