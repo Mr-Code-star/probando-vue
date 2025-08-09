@@ -128,6 +128,7 @@ export default {
       this.$router.push("/login");
     },
     // In sign-up.component.vue's register method
+    // En el método register de sign-up.component.vue
     async register() {
       if (!this.validate()) {
         return;
@@ -137,25 +138,19 @@ export default {
       this.registerError = null;
 
       try {
-        const userService = new UserService();
-
+        // Guardar datos temporalmente en localStorage en lugar de enviar al backend
         const userData = {
           name: this.name,
           lastname: this.lastname,
           contact_info: this.contactInfo,
           password: this.password,
-          birth_date: `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}-${String(this.selectedDay).padStart(2, '0')}`, // Elimina .value
+          birth_date: `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}-${String(this.selectedDay).padStart(2, '0')}`,
           gender: this.gender === 'Personalizado' ? this.customGender : this.gender,
           pronoun: this.pronoun,
-          subscription_plan: 0 // Default to 0 (no plan) initially
+          subscription_plan: 0 // Temporal hasta que compre un plan
         };
 
-        const response = await userService.create(userData);
-
-        // Guardar el ID del usuario en localStorage
-        localStorage.setItem('tempUserId', response.data.id);
-
-        // Redirigir a selección de suscripción
+        localStorage.setItem('tempUserData', JSON.stringify(userData));
         this.$router.push("/subscriptions");
       } catch (error) {
         console.error('Registration error:', error);
