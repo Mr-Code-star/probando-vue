@@ -1,97 +1,18 @@
 {
-  "users": [
-    {
-      "id": "1",
-      "name": "John Doe",
-      "contact_info": "jd@gmail.com",
-      "password": "123",
-      "subscription_plan": 1
-    },
-    {
-      "id": "2",
-      "name": "Jane Smith",
-      "contact_info": "js@gmail.com",
-      "password": "456",
-      "subscription_plan": 2
-    },
-    {
-      "id": "3",
-      "name": "Alice Johnson",
-      "contact_info": "aj@gmail.com",
-      "password": "abc",
-      "subscription_plan": 1
-    },
-    {
-      "id": "4",
-      "name": "Bob Brown",
-      "contact_info": "bb@gmail.com",
-      "password": "789",
-      "subscription_plan": 1
-    },
-    {
-      "id": "2130",
-      "name": "Chriptoher",
-      "lastname": "Rivas",
-      "contact_info": "936266002",
-      "password": "asdfghjkl-ar789A",
-      "birth_date": "1999-06-01",
-      "gender": "Homosexual",
-      "pronoun": {
-        "label": "Neutral: \"Greet him/her for his/her birthday\"\n",
-        "value": "Neutral: Greet him/her for his/her birthday"
-      }
-    },
-    {
-      "id": "ac73",
-      "name": "Chriptoher",
-      "lastname": "Rivas",
-      "contact_info": "936166002",
-      "password": "asdfghjkl-ar789A",
-      "birth_date": "2020-04-01",
-      "gender": "Hombre",
-      "pronoun": null
-    },
-    {
-      "id": "2652",
-      "name": "Diana",
-      "lastname": "Briceño",
-      "contact_info": "dianabriceño@gmail.com",
-      "password": "asdfghjkl-ar789A",
-      "birth_date": "2020-03-01",
-      "gender": "Mujer",
-      "pronoun": null
-    },
-    {
-      "id": "b22b",
-      "name": "Alex",
-      "lastname": "Baca",
-      "contact_info": "994755659",
-      "password": "asdfghjkl-ar789A",
-      "birth_date": "2020-03-01",
-      "gender": "Hombre",
-      "pronoun": null
-    },
-    {
-      "id": "ced1",
-      "name": "Yusveli",
-      "lastname": "Maldonado",
-      "contact_info": "yusmc@gmail.com",
-      "password": "qwerty-ar123A",
-      "birth_date": "2020-06-01",
-      "gender": "Mujer",
-      "pronoun": null
-    }
-  ],
+  "users": [],
   "subscription_plans": [
     {
       "id": "1",
       "name": "Plan Standard",
-      "price": 65.00
+      "price": 65,
+      "stripe_price_id": "price_1RtxHIEvqsOcf1uR7Q5u0Pqt"
     },
     {
       "id": "2",
       "name": "Plan Premium",
-      "price": 99.99
+      "price": 99.99,
+      "stripe_price_id": "price_1RtxIKEvqsOcf1uROSEjOMSF"
     }
-  ]
+  ],
+  "payments": []
 }

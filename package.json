@@ -6,15 +6,23 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "stripe-server": "node stripe.microservice.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run stripe-server\""
   },
   "dependencies": {
     "@primeuix/themes": "^1.2.1",
     "@primevue/themes": "^4.3.6",
+    "@stripe/stripe-js": "^7.8.0",
     "axios": "^1.10.0",
+    "concurrently": "^9.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.6",
+    "stripe": "^18.4.0",
     "vue": "^3.5.17",
     "vue-i18n": "^10.0.7",
     "vue-router": "^4.5.1"

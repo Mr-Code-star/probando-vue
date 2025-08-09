@@ -1,5 +1,6 @@
 <script>
 import {Button as PvButton, Card as PvCard} from "primevue";
+import {goToCheckout} from "../../shared/services/stripe.service.js";
 
 export default {
   name: 'subscription-item',
@@ -27,6 +28,21 @@ export default {
     isPopular() {
       return this.plan.name.toLowerCase().includes('premium');
     }
+  },
+  methods: {
+    async onStartNow(){
+      try {
+        await goToCheckout(this.plan.stripe_price_id);
+      } catch (error) {
+        console.error('Error during checkout:', error);
+        this.$toast.add({
+          severity: 'error',
+          summary: this.$t('plans.errorTitle'),
+          detail: this.$t('plans.errorMessage'),
+          life: 3000
+        });
+      }
+    }
   }
 }
 </script>
@@ -37,7 +53,7 @@ export default {
       <div class="plan-header">
         <h2 style="text-align: left; margin: 1rem 0 0 0; padding-left: 20px; zoom: 120%">{{ plan.name }}</h2>
         <div v-if="isPopular" class="popular-badge">{{ $t('plans.popular') }}</div>
-        <h3 style="text-align: left; color: #4CAF50; margin: 0.5rem 0; padding-left: 24px; zoom: 240% ">$ {{ plan.price }} <span style="font-size: 0.5em; vertical-align: super;">{{$t('plans.month')}}</span></h3>
+        <h3 style="text-align: left; color: #4CAF50; margin: 0.5rem 0; padding-left: 24px; zoom: 240% ">$ {{ plan.price.toFixed(2) }} <span style="font-size: 0.5em; vertical-align: super;">{{$t('plans.month')}}</span></h3>
       </div>
     </template>
 
@@ -53,6 +69,7 @@ export default {
     <template #footer>
       <pv-button
           class="b-start"
+          @click="onStartNow"
       ><b>{{$t('plans.startNow')}}</b></pv-button>
     </template>
   </pv-card>
