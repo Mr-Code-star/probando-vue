@@ -3,7 +3,7 @@ import SubscriptionList from "../components/subscription-list.component.vue";
 import {SubscriptionPlanService} from "../services/subscription-plan.service.js";
 import {SubscriptionPlanAssembler} from "../services/subscription-plan.assembler.js";
 export default {
-  name: 'subscription-and-plan-management',
+  name: 'subscription-plan-management',
   components: {
     SubscriptionList
   },
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-    <subscription-list :subscriptions="subscriptionsPlans" />
+  <subscription-list :subscriptions="subscriptionsPlans" />
 </template>
 
 <style>
