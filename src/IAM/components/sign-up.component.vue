@@ -16,7 +16,6 @@ import {
   validateGenderFields
 } from "../../shared/utils/validation.util.js";
 import { UserService } from "../services/user.service.js";
-import { User } from "../model/user.entity.js";
 
 export default {
   name: "sign-up",
@@ -128,6 +127,7 @@ export default {
     navigateToLogin() {
       this.$router.push("/login");
     },
+    // In sign-up.component.vue's register method
     async register() {
       if (!this.validate()) {
         return;
@@ -139,39 +139,30 @@ export default {
       try {
         const userService = new UserService();
 
-        // Extraer los valores numéricos de manera segura
-        const day = this.selectedDay?.value ?? this.selectedDay;
-        const month = this.selectedMonth?.value ?? this.selectedMonth;
-        const year = this.selectedYear?.value ?? this.selectedYear;
-
-        // Validar que los valores sean números
-        if (isNaN(day) || isNaN(month) || isNaN(year)) {
-          throw new Error('Invalid date values');
-        }
-
-        // Crear objeto de usuario
         const userData = {
           name: this.name,
           lastname: this.lastname,
           contact_info: this.contactInfo,
           password: this.password,
-          birth_date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+          birth_date: `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}-${String(this.selectedDay).padStart(2, '0')}`, // Elimina .value
           gender: this.gender === 'Personalizado' ? this.customGender : this.gender,
-          pronoun: this.pronoun
+          pronoun: this.pronoun,
+          subscription_plan: 0 // Default to 0 (no plan) initially
         };
 
         const response = await userService.create(userData);
-        this.navigateToSubscription();
 
+        // Guardar el ID del usuario en localStorage
+        localStorage.setItem('tempUserId', response.data.id);
+
+        // Redirigir a selección de suscripción
+        this.$router.push("/subscriptions");
       } catch (error) {
         console.error('Registration error:', error);
         this.registerError = error.response?.data?.message || 'Registration failed. Please try again.';
       } finally {
         this.isLoading = false;
       }
-    },
-    navigateToSubscription() {
-      this.$router.push("/subscriptions");
     }
   }
 }
@@ -485,7 +476,6 @@ export default {
 
 .form-label {
   font-weight: 500;
-  color: white;
   margin-bottom: 0.25rem;
   font-size: 0.95rem;
 }
@@ -557,7 +547,6 @@ export default {
 }
 
 .custom-gender-text {
-  color: white;
   font-size: 0.85rem;
   margin: 0.25rem 0;
 }
@@ -582,14 +571,12 @@ export default {
   width: 100%;
   font-size: 1.5rem;
   font-weight: 600;
-  color: white;
   margin-bottom: 0.5rem;
 }
 
 .description {
   text-align: center;
   margin-bottom: 1.25rem;
-  color: white;
   font-size: 0.95rem;
 }
 
