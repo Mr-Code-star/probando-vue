@@ -19,7 +19,7 @@ app.post('/api/v1/create-checkout-session', async (req, res) => {
             mode: 'subscription',
             line_items: [{ price: priceId, quantity: 1 }],
             customer_email: customerEmail, // opcional si ya lo tienes
-            success_url: 'http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}',
+            success_url: 'http://localhost:5173/login',
             cancel_url: 'http://localhost:5173/cancel',
             allow_promotion_codes: true
         });
@@ -30,6 +30,28 @@ app.post('/api/v1/create-checkout-session', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// En stripe.microservice.js
+app.post('/api/v1/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
 
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error(`Webhook Error: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the checkout.session.completed event
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+
+        // Aquí podrías actualizar el usuario en tu base de datos
+        // con la información de la suscripción
+        console.log('Payment succeeded for session:', session.id);
+    }
+
+    res.json({received: true});
+});
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Stripe server running on http://localhost:${PORT}`));
