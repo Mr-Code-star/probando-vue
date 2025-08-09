@@ -10,9 +10,11 @@ export class SubscriptionPlan {
                     id = 0,
                     name = '',
                     price = 0.00,
+                    stripe_price_id = ''
                 }) {
         this.id = id;
         this.name = name;
         this.price = price;
+        this.stripe_price_id = stripe_price_id;
     }
 }
