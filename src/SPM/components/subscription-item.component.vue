@@ -1,4 +1,5 @@
 <script>
+import { UserService} from "../../IAM/services/user.service.js";
 import {Button as PvButton, Card as PvCard} from "primevue";
 import {goToCheckout} from "../../shared/services/stripe.service.js";
 
@@ -30,9 +31,31 @@ export default {
     }
   },
   methods: {
-    async onStartNow(){
+    // En el método onStartNow de subscription-item.component.vue
+    async onStartNow() {
       try {
-        await goToCheckout(this.plan.stripe_price_id);
+        // Obtener datos temporales del usuario
+        const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
+        const tempUserId = localStorage.getItem('tempUserId');
+
+        if (!tempUserData) {
+          throw new Error('User data not found');
+        }
+
+        // Actualizar el plan del usuario antes de redirigir a Stripe
+        tempUserData.subscription_plan = this.plan.id; // 1 o 2 según el plan
+
+        // Guardar el usuario en db.json
+        const userService = new UserService();
+        const response = await userService.create(tempUserData);
+
+        // Guardar el ID del usuario en localStorage
+        localStorage.setItem('userId', response.data.id);
+        localStorage.removeItem('tempUserData');
+
+        // Redirigir a Stripe
+        await goToCheckout(this.plan.stripe_price_id, tempUserData.contact_info);
+
       } catch (error) {
         console.error('Error during checkout:', error);
         this.$toast.add({
