@@ -18,7 +18,8 @@ import {
     RadioButton,
     Dialog,
     InputMask,
-    Checkbox
+    Checkbox,
+    Toolbar
 } from "primevue";
 import router from "./router/index.js";
 import i18n from "./i18n/index.js";
@@ -47,6 +48,7 @@ app.use(ToastService)
 // Components personalized
 app.component('pv-select-button', SelectButton)
 app.component("pv-card", Card)
+app.component('pv-toolbar', Toolbar)
 app.component("pv-float-label", FloatLabel)
 app.component("pv-input-text", InputText)
 app.component('pv-password', Password)
