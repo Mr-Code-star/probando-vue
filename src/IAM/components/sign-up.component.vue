@@ -15,7 +15,7 @@ import {
   validateDateFields,
   validateGenderFields
 } from "../../shared/utils/validation.util.js";
-import { UserService } from "../services/user.service.js";
+import {UserService} from "../services/user.service.js";
 
 export default {
   name: "sign-up",
@@ -128,7 +128,6 @@ export default {
       this.$router.push("/login");
     },
     // In sign-up.component.vue's register method
-    // En el método register de sign-up.component.vue
     async register() {
       if (!this.validate()) {
         return;
@@ -138,6 +137,19 @@ export default {
       this.registerError = null;
 
       try {
+        // Crea una instancia del servicio
+        const userService = new UserService();
+
+        // Verificar si el contacto ya está en uso
+        const response = await userService.getByContactInfo(this.contactInfo);
+
+        if (response.data && response.data.length > 0) {
+          this.registerError = 'El correo o número de teléfono ya está en uso.';
+          this.showContactError = true;
+          this.contactErrorMsg = 'El correo o número de teléfono ya está en uso.';
+          return;
+        }
+
         // Guardar datos temporalmente en localStorage en lugar de enviar al backend
         const userData = {
           name: this.name,
