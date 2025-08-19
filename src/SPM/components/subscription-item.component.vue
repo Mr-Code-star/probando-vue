@@ -1,11 +1,12 @@
 <script>
-import { UserService} from "../../IAM/services/user.service.js";
-import {Button as PvButton, Card as PvCard} from "primevue";
-import {goToCheckout} from "../../shared/services/stripe.service.js";
+import { UserService } from "../../IAM/services/user.service.js";
+import { Button as PvButton, Card as PvCard } from "primevue";
+import { goToCheckout } from "../../shared/services/stripe.service.js";
+import EmailDialog from "./email-dialog.component.vue";
 
 export default {
   name: 'subscription-item',
-  components: {PvCard, PvButton},
+  components: { PvCard, PvButton, EmailDialog },
   props: {
     plan: {
       type: Object,
@@ -18,12 +19,10 @@ export default {
       const features = [];
       let i = 1;
 
-      // Continuar agregando características mientras existan en la traducción
       while (this.$te(`plans.${planType}.features.feature${i}`)) {
         features.push(this.$t(`plans.${planType}.features.feature${i}`));
         i++;
       }
-
       return features;
     },
     isPopular() {
@@ -31,43 +30,44 @@ export default {
     }
   },
   methods: {
-    // En el método onStartNow de subscription-item.component.vue
     async onStartNow() {
       try {
-        // Obtener datos temporales del usuario
         const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
-        const tempUserId = localStorage.getItem('tempUserId');
+        if (!tempUserData) throw new Error('User data not found');
 
-        if (!tempUserData) {
-          throw new Error('User data not found');
+        if (tempUserData.contact_info.includes('@')) {
+          await this.processPayment(tempUserData.contact_info);
+        } else {
+          this.$refs.emailDialog.open();
         }
-
-        // Actualizar el plan del usuario antes de redirigir a Stripe
-        tempUserData.subscription_plan = this.plan.id; // 1 o 2 según el plan
-
-        // Guardar el usuario en db.json
-        const userService = new UserService();
-        const response = await userService.create(tempUserData);
-
-        // Guardar el ID del usuario en localStorage
-        localStorage.setItem('userId', response.data.id);
-        localStorage.removeItem('tempUserData');
-
-        // Redirigir a Stripe
-        await goToCheckout(this.plan.stripe_price_id, tempUserData.contact_info);
-
       } catch (error) {
-        console.error('Error during checkout:', error);
-        this.$toast.add({
-          severity: 'error',
-          summary: this.$t('plans.errorTitle'),
-          detail: this.$t('plans.errorMessage'),
-          life: 3000
-        });
+        this.showError('No se pudo iniciar el pago');
       }
+    },
+
+    async processPayment(email) {
+      try {
+        localStorage.setItem('selectedPlanId', this.plan.id);
+        await goToCheckout(this.plan.stripe_price_id, email);
+      } catch (error) {
+        this.showError(error.message || 'Error al procesar el pago');
+      }
+    },
+
+    showError(message) {
+      this.$toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: message,
+        life: 3000
+      });
+    },
+
+    handleEmailSubmit(email) {
+      this.processPayment(email);
     }
   }
-}
+};
 </script>
 
 <template>
@@ -76,7 +76,7 @@ export default {
       <div class="plan-header">
         <h2 style="text-align: left; margin: 1rem 0 0 0; padding-left: 20px; zoom: 120%">{{ plan.name }}</h2>
         <div v-if="isPopular" class="popular-badge">{{ $t('plans.popular') }}</div>
-        <h3 style="text-align: left; color: #4CAF50; margin: 0.5rem 0; padding-left: 24px; zoom: 240% ">$ {{ plan.price.toFixed(2) }} <span style="font-size: 0.5em; vertical-align: super;">{{$t('plans.month')}}</span></h3>
+        <h3 style="text-align: left; color: #4CAF50; margin: 0.5rem 0; padding-left: 24px; zoom: 240%">$ {{ plan.price.toFixed(2) }} <span style="font-size: 0.5em; vertical-align: super;">{{$t('plans.month')}}</span></h3>
       </div>
     </template>
 
@@ -96,6 +96,11 @@ export default {
       ><b>{{$t('plans.startNow')}}</b></pv-button>
     </template>
   </pv-card>
+
+  <email-dialog
+      ref="emailDialog"
+      @submit="handleEmailSubmit"
+  />
 </template>
 
 <style scoped>
@@ -149,11 +154,7 @@ export default {
   font-size: 1.1rem;
 }
 
-.plan-card {
-  vertical-align: top;
-  transition: transform 0.2s;
-}
-.b-start{
+.b-start {
   background-color: #000;
   color: #fff;
   justify-content: center;
@@ -164,10 +165,12 @@ export default {
   width: 95%;
   transition: 0.43s;
 }
+
 .plan-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
+
 @media (max-width: 768px) {
   .plan-card {
     width: 100%;
@@ -177,22 +180,20 @@ export default {
     font-size: 1rem;
     padding: 0.8rem 0;
   }
-
   h3 {
     zoom: 180% !important;
   }
 }
+
 @media (max-width: 480px) {
   .feature-item {
     font-size: 0.95rem;
     padding: 0.6rem 0;
   }
-
   .popular-badge {
     font-size: 0.65rem;
     padding: 0.2rem 0.8rem;
   }
-
   h3 {
     zoom: 150% !important;
   }
