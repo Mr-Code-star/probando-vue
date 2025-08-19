@@ -11,29 +11,30 @@ const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export async function goToCheckout(priceId, customerEmail) {
     if (!stripePromise) {
-        throw new Error("Stripe no se pudo inicializar. Falta la clave pública.");
+        throw new Error("Stripe not initialized. Missing public key.");
     }
 
     try {
-        // Llama al backend para crear la sesión de pago
         const response = await fetch('http://localhost:3001/api/v1/create-checkout-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ priceId, customerEmail }),
+            body: JSON.stringify({
+                priceId,
+                customerEmail // Make sure this matches the backend expectation
+            }),
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Error al crear la sesión de pago");
+            throw new Error(errorData.error || "Failed to create payment session");
         }
 
         const { id: sessionId } = await response.json();
         const stripe = await stripePromise;
 
-        // Redirige al checkout de Stripe
         return stripe.redirectToCheckout({ sessionId });
     } catch (error) {
-        console.error("🔴 Error en el proceso de pago:", error);
-        throw error; // Propaga el error para manejarlo en el componente
+        console.error("Payment process error:", error);
+        throw new Error(`Checkout failed: ${error.message}`);
     }
 }
