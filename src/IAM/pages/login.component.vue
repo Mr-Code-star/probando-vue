@@ -26,9 +26,10 @@ export default {
       }
     },
     handleLoginSuccess(user) {
-      // Store user data in Vuex or localStorage
       localStorage.setItem('user', JSON.stringify(user));
-      // You can also emit an event to the parent component if needed
+      window.dispatchEvent(new CustomEvent('user-changed', { detail: user }));
+      // Redirigir a la ruta sin parámetro
+      this.$router.push('/profile');
     }
   }
 }
