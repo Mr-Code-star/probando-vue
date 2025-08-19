@@ -7,6 +7,8 @@ import Aura from '@primevue/themes/aura'
 import {
     ConfirmationService,
     SelectButton,
+    Avatar,
+    FileUpload,
     ToastService,
     Card,
     FloatLabel,
@@ -59,6 +61,8 @@ app.component('pv-radio-button', RadioButton)
 app.component('pv-dialog', Dialog)
 app.component('pv-input-mask', InputMask)
 app.component('pv-checkbox', Checkbox)
+app.component('pv-file-upload', FileUpload)
+app.component('pv-avatar', Avatar)
 app.use(i18n)
 app.use(router)
 app.mount('#app')
