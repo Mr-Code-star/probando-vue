@@ -59,14 +59,14 @@ export class UserService{
     }
 
     /**
-     * @summary Fetches a user resource by its email
-     * @description this method retrieves a specific user resource from the API endpoint using the provided email.
-     * @param email
+     * @summary Fetches a user resource by its email or phone contact
+     * @description this method retrieves a specific user resource from the API endpoint using the provided email or phone contact.
+     * @param contact
      * @return {Promise<axios.AxiosResponse<any>>}
      * @author Baca Camargo Vitaly Arturo, u20231c426
      */
-    getByEmail(email){
-        return httpInstance.get(`${this.resourceEndpoint}?contact_info=${email}`);
+    getByContactInfo (contact) {
+        return httpInstance.get(`${this.resourceEndpoint}?contact_info=${contact}`);
     }
 
     /**
