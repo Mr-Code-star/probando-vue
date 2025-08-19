@@ -2,20 +2,20 @@ import LoginComponent from "../IAM/pages/login.component.vue";
 import RegisterComponent from "../IAM/pages/register.component.vue";
 import {createRouter, createWebHistory} from "vue-router";
 
-//import {authenticationGuard} from "../iam/services/authentication.guard.js";
-//import SignUpComponent from "../iam/pages/sign-up.component.vue";
-//import SignInComponent from "../iam/pages/sign-in.component.vue";
-
-
-//const AboutComponent = () => import('../public/pages/about.component.vue');
-//const CategoryManagementComponent = () => import('../publishing/pages/category-management.component.vue');
-const PageHomeComponent = () => import("../public/pages/page-home.component.vue")
+const SettingsComponent = () => import('../public/pages/settings.component.vue');
+const PageHomeComponent = () => import("../public/pages/home.component.vue");
+const ProfileComponent = () => import("../public/pages/profile.component.vue");
+const ProfileSetupComponent = () => import("../P&&P/pages/setup-profile.component.vue");
 const SubscriptionPlanManagerComponent = () => import("../SPM/pages/subscription-plan-management.component.vue")
-const PageNotFoundComponent = () => import('../public/pages/page-not-found.component.vue');
+const PageNotFoundComponent = () => import('../public/pages/not-found.component.vue');
+
 const routes = [
     {path: '/login', name: 'login', component: LoginComponent, meta: {title: 'Login'}},
     {path: '/home', name: 'home', component: PageHomeComponent, meta: {title: 'Home'}},
+    {path: '/settings', name: 'settings', component: SettingsComponent, meta: {title: 'Settings'}},
     {path: '/register', name: 'register', component: RegisterComponent, meta: {title: 'Register'}},
+    {path: '/setup-profile', name: 'setup-profile', component: ProfileSetupComponent, meta: {title: 'Setup Profile'}},
+    {path: '/profile', name: 'profile', component: ProfileComponent, meta: { requiresAuth: true, title: 'Profile' }},
     {path: '/subscriptions', name: 'subscription-plan-management', component: SubscriptionPlanManagerComponent, meta: {title: 'Subscription Plan Manager'}},
     {path: '/', name: 'default', redirect: '/login'},
     {path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFoundComponent, meta: {title: 'Page Not Found'}}
@@ -32,6 +32,5 @@ router.beforeEach((to, from, next) => {
     document.title = `${baseTitle} | ${to.meta['title']}`;
     next();
 });
-
 
 export default router;
