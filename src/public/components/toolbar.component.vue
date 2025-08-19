@@ -18,7 +18,7 @@ export default {
   computed: {
     shouldShowFullToolbar() {
       const hiddenRoutes = [
-        "payment-success",
+        "setup-profile",
         "checkout-simulator",
         "login",
         "payment-management",
