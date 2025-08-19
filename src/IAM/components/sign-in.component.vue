@@ -76,7 +76,6 @@ export default {
 
       // Login exitoso
       this.$emit('login-success', validation.user);
-      this.$router.push('/home');
     },
     validatePassword() {
       const password = this.password.trim();
