@@ -33,36 +33,9 @@ export default {
   created() {
     this.userService = new UserService();
     this.profileService = new ProfileService();
-
+    this.loadUserData(); // Cargar datos directamente
   },
   methods: {
-    async completarRegistroPostPago() {
-      this.isLoading = true;
-      try {
-        const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
-        const selectedPlanId = localStorage.getItem('selectedPlanId');
-
-        if (!tempUserData || !selectedPlanId) {
-          throw new Error('Datos de registro no encontrados');
-        }
-
-        // SOLO CARGAR DATOS, NO CREAR USUARIO
-        this.loadUserData();
-
-        // Guardar usuario temporal en localStorage para usarlo después
-        localStorage.setItem('user', JSON.stringify({
-          id: tempUserData.id, // Asegúrate que esto existe o genera un ID temporal
-          name: tempUserData.name,
-          // ... otros datos necesarios
-        }));
-
-      } catch (error) {
-        console.error('Error en registro post-pago:', error);
-        this.$router.push('/register');
-      } finally {
-        this.isLoading = false;
-      }
-    },
     loadUserData() {
       const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
       if (tempUserData) {
@@ -75,7 +48,10 @@ export default {
           contactInfo: tempUserData.contact_info
         };
 
-        this.profileData.userName = this.generateUsername(tempUserData.name, tempUserData.lastname);
+        // Generar username solo si no existe uno previamente
+        if (!this.profileData.userName) {
+          this.profileData.userName = this.generateUsername(tempUserData.name, tempUserData.lastname);
+        }
       }
     },
     generateUsername(name, lastname) {
