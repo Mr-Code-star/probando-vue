@@ -1,6 +1,7 @@
 <script>
 import {UserService} from "../../IAM/services/user.service.js";
 import {ProfileService} from "../services/profile.service.js";
+import {ProfileAsemmbler} from "../services/profile.asemmbler.js";
 
 export default {
   name: 'SetupProfile',
@@ -108,7 +109,7 @@ export default {
         const userId = userResponse.data.id;
 
         // 2. Preparar datos del perfil
-        const profilePayload = {
+        const profilePayload = ProfileAsemmbler.toEntityFromResource({
           id_user: userId,
           user_name: this.profileData.userName,
           bio: this.profileData.bio,
@@ -120,14 +121,12 @@ export default {
           postsCount: this.profileData.postsCount,
           createdAt: this.profileData.createdAt,
           subscriptionPlanId: selectedPlanId,
-          avatar: {
-            objectURL: null,
-            base64: this.profileData.avatarBase64
-          },
           avatarUrl: this.profileData.avatarBase64
               ? `data:image/jpeg;base64,${this.profileData.avatarBase64}`
               : null
-        };
+        });
+
+        console.log('Profile entity to create:', profilePayload);
 
         // 3. Crear perfil
         await this.profileService.create(profilePayload);
