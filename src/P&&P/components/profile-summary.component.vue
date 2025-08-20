@@ -1,5 +1,6 @@
 <script>
 import { ProfileService } from "../services/profile.service.js";
+import { UserService } from "../../IAM/services/user.service.js"; // Importar UserService
 
 export default {
   name: "ProfileSummary",
@@ -12,12 +13,14 @@ export default {
   data() {
     return {
       profile: null,
+      user: null, // Nuevo dato para almacenar información del usuario
       isLoading: false,
       error: null
     };
   },
   created() {
     this.fetchProfile();
+    this.fetchUser(); // Llamar a la nueva función para obtener datos del usuario
   },
   methods: {
     async fetchProfile() {
@@ -26,10 +29,9 @@ export default {
 
       try {
         const profileService = new ProfileService();
-        console.log('Fetching profile for user ID:', this.userId); // <-- Agregar esto
+        console.log('Fetching profile for user ID:', this.userId);
         const response = await profileService.getByUserId(this.userId);
-        console.log('Profile response:', response); // <-- Agregar esto
-
+        console.log('Profile response:', response);
 
         if (response.data && response.data.length > 0) {
           this.profile = response.data[0];
@@ -42,6 +44,30 @@ export default {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    // Nueva función para obtener datos del usuario
+    async fetchUser() {
+      try {
+        const userService = new UserService();
+        const response = await userService.getById(this.userId);
+
+        if (response.data) {
+          this.user = response.data;
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        // No mostramos error aquí para no interrumpir la visualización del perfil
+      }
+    }
+  },
+  computed: {
+    // Computed property para obtener el nombre completo
+    fullName() {
+      if (this.user) {
+        return `${this.user.name || ''} ${this.user.lastname || ''}`.trim();
+      }
+      return 'No name available';
     }
   }
 };
@@ -49,38 +75,56 @@ export default {
 
 <template>
   <div class="profile-summary-container">
-    <pv-card v-if="!isLoading && profile" class="profile-card">
-      <template #content>
-        <div class="buttons">
-          <pv-button class="EditButton" icon="pi pi-pencil" label="Edit Profile"></pv-button>
-          <pv-button class="ViewartButton" icon="pi pi-image" label="View archive"></pv-button>
+    <div v-if="!isLoading && profile" class="profile-summary">
+      <!-- Header section with username and buttons -->
+      <div class="profile-header">
+        <h2 class="full-name">{{ fullName }}</h2>
+        <div class="action-buttons">
+          <pv-button class="edit-button" icon="pi pi-pencil" label="Editar perfil"></pv-button>
+          <pv-button class="view-archive-button" icon="pi pi-image" label="Ver archivo"></pv-button>
         </div>
+      </div>
 
-        <div class="stats-container">
-          <div class="stat-item">
-            <div class="stat-value">{{ profile.postsCount || 0 }}</div>
-            <div class="stat-label">Posts</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ profile.followingCount || 0 }}</div>
-            <div class="stat-label">Following</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">{{ profile.followersCount || 0 }}</div>
-            <div class="stat-label">Followers</div>
-          </div>
+      <!-- Stats section - shown on desktop, hidden on mobile -->
+      <div class="stats-container desktop-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.postsCount || 0 }}</span>
+          <span class="stat-label">publicaciones</span>
         </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.followersCount || 0 }}</span>
+          <span class="stat-label">seguidores</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.followingCount || 0 }}</span>
+          <span class="stat-label">seguidos</span>
+        </div>
+      </div>
 
-        <div class="bio-section" v-if="profile.bio">
-          <h3>About</h3>
-          <p class="bio-content">{{ profile.bio }}</p>
+      <!-- Bio section -->
+      <div class="bio-section">
+        <p class="bio-content" v-if="profile.bio">{{ profile.bio }}</p>
+        <p class="no-bio" v-else>No biography yet</p>
+      </div>
+    </div>
+
+    <!-- Mobile stats - shown only on mobile -->
+    <div v-if="!isLoading && profile" class="mobile-stats">
+      <div class="stats-container">
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.postsCount || 0 }}</span>
+          <span class="stat-label">publicaciones</span>
         </div>
-        <div class="bio-section" v-else>
-          <h3>About</h3>
-          <p class="no-bio">No biography yet</p>
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.followersCount || 0 }}</span>
+          <span class="stat-label">seguidores</span>
         </div>
-      </template>
-    </pv-card>
+        <div class="stat-item">
+          <span class="stat-value">{{ profile.followingCount || 0 }}</span>
+          <span class="stat-label">seguidos</span>
+        </div>
+      </div>
+    </div>
 
     <div v-else-if="isLoading" class="loading">
       <i class="pi pi-spinner pi-spin"></i> Loading profile...
@@ -94,104 +138,163 @@ export default {
 
 <style scoped>
 .profile-summary-container {
-  margin-top: 1.5rem;
-}
-
-.buttons {
+  width: 100%;
+  min-height: 350px; /* Misma altura mínima que el avatar para simetría */
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap; /* Permite que los botones se apilen en móviles */
+  flex-direction: column;
+  justify-content: center;
 }
 
-.profile-card {
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.profile-summary {
+  padding: 1rem 0;
+  width: 100%;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.full-name {
+  font-size: 1.75rem;
+  font-weight: 300;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-button, .view-archive-button {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
 }
 
 .stats-container {
   display: flex;
   justify-content: space-around;
-  padding: 1rem 0;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb;
+  margin: 1.5rem 0;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #666;
   margin-top: 0.25rem;
 }
 
 .bio-section {
-  margin-top: 1rem;
-}
-
-.bio-section h3 {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  color: #333;
+  margin: 1.5rem 0;
 }
 
 .bio-content {
-  color: #444;
   line-height: 1.5;
+  margin: 0;
 }
 
 .no-bio {
-  color: #999;
   font-style: italic;
+  margin: 0;
 }
 
 .loading, .error {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
-  color: #666;
+  padding: 2rem;
+  min-height: 350px;
 }
 
-/* Responsive styles */
+/* Desktop styles */
+.desktop-stats {
+  display: flex;
+}
+
+.mobile-stats {
+  display: none;
+}
+
+/* Mobile responsive styles */
 @media (max-width: 768px) {
-  .buttons {
-    justify-content: center;
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .buttons .p-button {
-    flex: 1 1 100%; /* Ocupa todo el ancho en móviles */
-    min-width: 120px;
+  .action-buttons {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  .stats-container {
-    display: none; /* Ocultar estadísticas en móviles */
+  .edit-button, .view-archive-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .desktop-stats {
+    display: none;
+  }
+
+  .mobile-stats {
+    display: block;
+    margin-top: 1rem;
   }
 
   .bio-section {
-    display: none; /* Ocultar biografía en móviles */
+    padding: 0 1rem;
+  }
+
+  .profile-summary-container {
+    min-height: 220px;
   }
 }
 
 @media (max-width: 480px) {
-  .profile-card {
-    padding: 1rem;
+  .full-name {
+    font-size: 1.5rem;
   }
 
-  .buttons {
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+  .stats-container {
+    padding: 1rem 0;
+  }
+
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .profile-summary-container {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-summary-container {
+    min-height: 150px;
   }
 }
 </style>

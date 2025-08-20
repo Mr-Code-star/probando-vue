@@ -1,7 +1,7 @@
 <template>
   <div class="profile-container">
     <div class="profile-left">
-      <user-avatar :userId="currentUserId" size="large" />
+      <user-avatar :userId="currentUserId" />
     </div>
     <div class="profile-right">
       <profile-summary :userId="currentUserId" />
@@ -50,42 +50,59 @@ export default {
 .profile-container {
   display: flex;
   gap: 2rem;
-  align-items: flex-start;
+  align-items: stretch; /* Cambiado a stretch para igualar alturas */
   max-width: 900px;
   margin: 0 auto;
   padding: 1rem;
-  flex-direction: column; /* Columna en móviles */
+  flex-direction: column;
 }
 
 .profile-left {
-  flex: 0 0 auto; /* Ancho automático */
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
 .profile-right {
-  flex: 1;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 768px) {
   .profile-container {
-    flex-direction: row; /* Fila en pantallas más grandes */
-    gap: 4rem;
+    flex-direction: row;
+    gap: 3rem;
+    align-items: flex-start;
   }
 
   .profile-left {
-    flex: 0 0 200px;
+    flex: 0 0 300px;
     justify-content: flex-start;
     width: auto;
-    align-self: flex-start;
-    position: sticky;
-    top: 1rem;
+    align-self: stretch; /* Estirar para igualar altura */
   }
 
   .profile-right {
     width: auto;
+    flex: 1;
+  }
+}
+
+@media (min-width: 992px) {
+  .profile-container {
+    gap: 4rem;
+  }
+
+  .profile-left {
+    flex: 0 0 300px;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-container {
+    padding: 0.5rem;
+    gap: 1.5rem;
   }
 }
 </style>
