@@ -14,6 +14,8 @@ export class Profile {
                     createdAt = new Date().toISOString(),
                     updatedAt = new Date().toISOString(),
                 } = {}) {
+        this.id_user = id_user,
+        this.user_name = user_name,
         this.bio = bio;
         this.avatarUrl = avatarUrl;
         this.birthDate = birthDate;
