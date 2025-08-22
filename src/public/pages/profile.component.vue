@@ -5,27 +5,59 @@
     </div>
     <div class="profile-right">
       <profile-summary :userId="currentUserId" />
+
+      <div class="posts-section">
+        <div class="section-header">
+          <h2>Mis Posts</h2>
+        </div>
+
+        <post-list
+            :posts="userPosts"
+            :loading="loadingPosts"
+            @create-post="showPostComposer = true"
+            @post-updated="handlePostUpdated"
+            @post-deleted="handlePostDeleted"
+        />
+      </div>
     </div>
   </div>
+  <post-composer
+      v-if="showPostComposer"
+      :post-to-edit="editingPost"
+      @post-created="handlePostCreated"
+      @post-updated="handlePostUpdated"
+      @close="closeComposer"
+  />
 </template>
 
 <script>
 import UserAvatar from "../../P&&P/components/user-avatar.component.vue";
 import ProfileSummary from "../../P&&P/components/profile-summary.component.vue";
+import PostList from "../../PPM/components/posts/post-list.component.vue";
+import PostComposer from "../../PPM/components/posts/post-composer.component.vue";
 
 export default {
   name: "Profile",
-  components: { ProfileSummary, UserAvatar },
+  components: {
+    ProfileSummary,
+    UserAvatar,
+    PostList,
+    PostComposer
+  },
   data() {
     return {
-      currentUserId: null
+      currentUserId: null,
+      userPosts: [],
+      loadingPosts: false,
+      showPostComposer: false,
+      editingPost: null
     };
   },
-  created() {
-    this.loadUserId();
+  async created() {
+    await this.loadUserId();
   },
   methods: {
-    loadUserId() {
+    async loadUserId() {
       try {
         const userData = localStorage.getItem('user');
         const user = userData ? JSON.parse(userData) : null;
@@ -36,11 +68,33 @@ export default {
         }
 
         this.currentUserId = user.id;
-
       } catch (error) {
         console.error('Error loading user:', error);
         this.$router.push('/login');
       }
+    },
+
+
+    handlePostCreated(newPost) {
+      this.userPosts.unshift(newPost);
+      this.closeComposer();
+    },
+
+    handlePostUpdated(updatedPost) {
+      const index = this.userPosts.findIndex(p => p.id === updatedPost.id);
+      if (index !== -1) {
+        this.userPosts.splice(index, 1, updatedPost);
+      }
+      this.closeComposer();
+    },
+
+    handlePostDeleted(postId) {
+      this.userPosts = this.userPosts.filter(p => p.id !== postId);
+    },
+
+    closeComposer() {
+      this.showPostComposer = false;
+      this.editingPost = null;
     }
   }
 };
