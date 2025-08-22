@@ -19,6 +19,7 @@
           :imageUrl="imageUrl"
           :selectedFilter="selectedFilter"
           :adjustments="currentAdjustments"
+          :editorSettings="initialSettings?.editorSettings || {}"
           :key="previewKey"
       />
 
@@ -138,9 +139,26 @@ export default {
       editorSettings: {} // Nuevo: almacenar ajustes del editor
     };
   },
+  computed: {
+    combinedAdjustments() {
+      return {
+        ...this.currentAdjustments,
+        editorSettings: this.initialSettings?.editorSettings || {}
+      };
+    }
+  },
   watch: {
     visible(newVal) {
       if (newVal && this.initialSettings) {
+        // Cargar ajustes iniciales si existen
+        if (this.initialSettings.filter) {
+          this.selectedFilter = this.initialSettings.filter;
+        }
+        if (this.initialSettings.adjustments) {
+          this.currentAdjustments = { ...this.initialSettings.adjustments };
+        }
+        // Forzar re-render para mostrar los ajustes correctos
+        this.previewKey += 1;
       }
     }
   },
@@ -180,9 +198,9 @@ export default {
       }
     },
     applyChanges() {
-      // Combinar ajustes del editor con los filtros
+      // Combinar ajustes del editor con los filtros - CORREGIDO
       const finalSettings = {
-        editorSettings: this.editorSettings,
+        editorSettings: this.initialSettings?.editorSettings || {}, // Usar initialSettings
         filter: this.selectedFilter,
         adjustments: { ...this.currentAdjustments }
       };
@@ -194,14 +212,13 @@ export default {
     goBackToEditor() {
       // Guardar los ajustes actuales antes de volver
       const currentSettings = {
+        editorSettings: this.initialSettings?.editorSettings || {}, // Incluir editorSettings
         filter: this.selectedFilter,
         adjustments: { ...this.currentAdjustments }
       };
 
       this.$emit('go-back', currentSettings);
     },
-
-
   }
 };
 </script>

@@ -17,7 +17,7 @@ export default {
     imageUrl: String,
     selectedFilter: String,
     adjustments: Object,
-    editorSettings: Object
+    editorSettings: Object  // Esta prop debe estar definida
   },
   computed: {
     computedFilterStyle() {
