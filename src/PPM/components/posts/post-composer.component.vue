@@ -1,4 +1,3 @@
-<!-- src/PPM/components/posts/post-composer.component.vue -->
 <template>
   <div>
     <!-- Diálogo para subir medios -->
@@ -21,8 +20,8 @@
         @image-removed="handleImageRemoved"
         @close="closeImageEditor"
         @go-back="goBackToMediaUpload"
-        @proceed="proceedToTextComposer"
-        @apply-changes="applyImageChanges"
+        @proceed="proceedToFilterAdjust"
+        @apply-changes="saveImageEditorSettings"
         @image-added="handleImageAddedInEditor"
         @image-selected="handleImageSelectedInEditor"
     />
@@ -95,7 +94,8 @@ export default {
       currentImageUrl: '',
       currentVideoIndex: -1,
       currentVideoUrl: '',
-      currentFilterSettings: {}
+      currentFilterSettings: {},
+      imageEditorSettings: {} // Nuevo objeto para guardar ajustes del editor
     };
   },
   computed: {
@@ -132,28 +132,67 @@ export default {
       this.showImageEditor = false;
       this.showFilterAdjust = true;
 
-      // Guardar la URL de la imagen actual
       if (this.uploadedImagesForEditor.length > 0 && this.currentImageIndex >= 0) {
         this.currentImageUrl = this.uploadedImagesForEditor[this.currentImageIndex].url;
+
+        // Pasar los ajustes del editor al componente de filtros
+        this.currentFilterSettings = {
+          editorSettings: this.imageEditorSettings[this.currentImageIndex] || {},
+          filter: 'normal',
+          adjustments: {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            fade: 0,
+            warmth: 0,
+            vignette: 0
+          }
+        };
       }
     },
+
+    saveImageEditorSettings(settings) {
+      // Guardar los ajustes del editor para la imagen actual
+      if (!this.imageEditorSettings[this.currentImageIndex]) {
+        this.imageEditorSettings[this.currentImageIndex] = {};
+      }
+
+      this.imageEditorSettings[this.currentImageIndex] = {
+        ...this.imageEditorSettings[this.currentImageIndex],
+        ...settings
+      };
+
+      this.proceedToFilterAdjust();
+    },
+
     goBackToImageEditor() {
       this.showFilterAdjust = false;
       this.showImageEditor = true;
     },
+
     closeFilterAdjust() {
       this.showFilterAdjust = false;
       this.$emit('close');
     },
+
     applyFilterChanges(settings) {
       console.log('Aplicando filtros y ajustes:', settings);
-      // Guardar los ajustes para posible uso posterior
-      this.currentFilterSettings = settings;
+
+      // Combinar ajustes del editor con los filtros
+      const finalSettings = {
+        ...settings,
+        editorSettings: this.imageEditorSettings[this.currentImageIndex] || {}
+      };
+
+      // Guardar los ajustes finales
+      this.currentFilterSettings = finalSettings;
 
       // Después de aplicar filtros, proceder al editor de texto
       this.showFilterAdjust = false;
       this.showTextOnlyDialog = true;
     },
+
+    // Resto de métodos sin cambios...
     handleImageRemoved(index) {
       // Elimina la imagen del array selectedMedia
       this.selectedMedia.splice(index, 1);
@@ -169,6 +208,7 @@ export default {
         this.showMediaUpload = true;
       }
     },
+
     goBackToMediaUpload() {
       this.showImageEditor = false;
       this.showMediaUpload = true;
@@ -183,7 +223,9 @@ export default {
       // Limpiar el array de imágenes seleccionadas
       this.selectedMedia = [];
       this.currentImageIndex = -1;
+      this.imageEditorSettings = {}; // Limpiar ajustes
     },
+
     goBackToMediaUploadFromVideo() {
       this.showVideoEditor = false;
       this.showMediaUpload = true;
@@ -198,25 +240,31 @@ export default {
       this.currentVideoIndex = -1;
       this.currentVideoUrl = '';
     },
+
     isImage(file) {
       return file.type.startsWith('image/');
     },
+
     isVideo(file) {
       return file.type.startsWith('video/');
     },
+
     handleImageAddedInEditor(file) {
       // Agregar la nueva imagen al array selectedMedia
       this.selectedMedia.push(file);
       // Actualizar el índice actual para apuntar a la nueva imagen
       this.currentImageIndex = this.selectedMedia.length - 1;
     },
+
     getObjectURL(file) {
       return URL.createObjectURL(file);
     },
+
     handleImageSelectedInEditor(index) {
       // Actualizar el índice actual cuando el usuario selecciona una imagen diferente
       this.currentImageIndex = index;
     },
+
     processFiles(files) {
       const validFiles = files.filter(file =>
           file.type.startsWith('image/') || file.type.startsWith('video/')
@@ -236,12 +284,14 @@ export default {
         }
       }
     },
+
     removeMedia(index) {
       if (this.getObjectURL(this.selectedMedia[index])) {
         URL.revokeObjectURL(this.getObjectURL(this.selectedMedia[index]));
       }
       this.selectedMedia.splice(index, 1);
     },
+
     editMedia(index) {
       const file = this.selectedMedia[index];
 
@@ -257,25 +307,26 @@ export default {
         this.showMediaUpload = false;
       }
     },
+
     applyImageChanges(settings) {
       console.log('Aplicando cambios a la imagen:', settings);
     },
+
     applyVideoChanges(settings) {
       console.log('Aplicando cambios al video:', settings);
     },
-    proceedToTextComposer() {
-      this.showImageEditor = false;
-      this.showFilterAdjust = true;
-    },
+
     publishTextOnly() {
       this.showMediaUpload = false;
       this.showTextOnlyDialog = true;
       this.selectedMedia = [];
     },
+
     closeImageEditor() {
       this.showImageEditor = false;
       this.$emit('close')
     },
+
     closeVideoEditor() {
       this.showVideoEditor = false;
       this.$emit('close')
@@ -285,6 +336,7 @@ export default {
       this.showTextOnlyDialog = false;
       this.$emit('close');
     },
+
     close() {
       // Liberar todas las URLs de objetos
       this.selectedMedia.forEach(file => {
@@ -298,6 +350,7 @@ export default {
       this.selectedMedia = [];
       this.currentImageIndex = -1;
       this.currentVideoIndex = -1;
+      this.imageEditorSettings = {}; // Limpiar ajustes
 
       this.$emit('close');
     }
