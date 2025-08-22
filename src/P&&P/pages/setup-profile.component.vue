@@ -34,7 +34,18 @@ export default {
   created() {
     this.userService = new UserService();
     this.profileService = new ProfileService();
-    this.loadUserData(); // Cargar datos directamente
+
+    // Check if we have the necessary data
+    const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
+    const selectedPlanId = localStorage.getItem('selectedPlanId');
+
+    if (!tempUserData || !selectedPlanId) {
+      // Redirect back to registration if data is missing
+      this.$router.push('/register');
+      return;
+    }
+
+    this.loadUserData();
   },
   methods: {
     loadUserData() {
@@ -96,8 +107,12 @@ export default {
         const tempUserData = JSON.parse(localStorage.getItem('tempUserData'));
         const selectedPlanId = localStorage.getItem('selectedPlanId');
 
-        if (!tempUserData || !selectedPlanId) {
-          throw new Error('User data or plan ID not found');
+        if (!tempUserData) {
+          throw new Error('User registration data not found. Please complete registration first.');
+        }
+
+        if (!selectedPlanId) {
+          throw new Error('Subscription plan not selected. Please choose a plan first.');
         }
 
         // 1. Crear usuario primero
