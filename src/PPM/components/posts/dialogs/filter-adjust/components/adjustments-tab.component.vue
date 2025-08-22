@@ -22,7 +22,16 @@ export default {
     adjustments: Array,
     currentValues: Object
   },
-  emits: ['update-adjustment']
+  emits: ['update-adjustment'],
+  watch: {
+    currentValues: {
+      deep: true,
+      handler() {
+        // Forzar actualización de los sliders cuando los valores cambian
+        this.$forceUpdate();
+      }
+    }
+  }
 };
 </script>
 

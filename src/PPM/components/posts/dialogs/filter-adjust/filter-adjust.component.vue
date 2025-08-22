@@ -19,6 +19,7 @@
           :imageUrl="imageUrl"
           :selectedFilter="selectedFilter"
           :adjustments="currentAdjustments"
+          :key="previewKey"
       />
 
       <div class="controls-container">
@@ -45,6 +46,7 @@
               :filters="filters"
               :selectedFilter="selectedFilter"
               @select-filter="selectFilter"
+              :key="filterTabKey"
           />
 
           <!-- Componente AdjustmentsTab -->
@@ -63,7 +65,7 @@
         <pv-button
             label="Volver"
             class="p-button-text"
-            @click="$emit('go-back')"
+            @click="goBackToEditor"
             icon="pi pi-arrow-left"
         />
 
@@ -130,13 +132,15 @@ export default {
         { name: 'fade', label: 'Atenuar', min: 0, max: 100, step: 1 },
         { name: 'warmth', label: 'Temperatura', min: -100, max: 100, step: 1 },
         { name: 'vignette', label: 'Viñeta', min: 0, max: 100, step: 1 }
-      ]
+      ],
+      previewKey: 0, // Key para forzar re-render de ImagePreview
+      filterTabKey: 0, // Key para forzar re-render de FilterTab
+      editorSettings: {} // Nuevo: almacenar ajustes del editor
     };
   },
   watch: {
     visible(newVal) {
       if (newVal && this.initialSettings) {
-        this.loadInitialSettings();
       }
     }
   },
@@ -148,6 +152,7 @@ export default {
       this.currentAdjustments[name] = Number(value);
     },
     resetAdjustments() {
+      // Resetear valores
       this.selectedFilter = 'normal';
       this.currentAdjustments = {
         brightness: 100,
@@ -157,21 +162,46 @@ export default {
         warmth: 0,
         vignette: 0
       };
+
+      // Forzar re-render de los componentes
+      this.previewKey += 1;
+      this.filterTabKey += 1;
+
+      // Si estamos en la pestaña de ajustes, también necesitamos actualizar los sliders
+      if (this.activeTab === 'adjustments') {
+        // Forzar re-render de AdjustmentsTab también
+        this.$nextTick(() => {
+          // Esto asegurará que los sliders se actualicen visualmente
+          this.activeTab = 'filters';
+          this.$nextTick(() => {
+            this.activeTab = 'adjustments';
+          });
+        });
+      }
     },
     applyChanges() {
-      this.$emit('apply-changes', {
+      // Combinar ajustes del editor con los filtros
+      const finalSettings = {
+        editorSettings: this.editorSettings,
         filter: this.selectedFilter,
         adjustments: { ...this.currentAdjustments }
-      });
+      };
+
+      this.$emit('apply-changes', finalSettings);
     },
-    loadInitialSettings() {
-      if (this.initialSettings.filter) {
-        this.selectedFilter = this.initialSettings.filter;
-      }
-      if (this.initialSettings.adjustments) {
-        this.currentAdjustments = { ...this.currentAdjustments, ...this.initialSettings.adjustments };
-      }
-    }
+
+    // Nuevo método para volver al editor
+    goBackToEditor() {
+      // Guardar los ajustes actuales antes de volver
+      const currentSettings = {
+        filter: this.selectedFilter,
+        adjustments: { ...this.currentAdjustments }
+      };
+
+      this.$emit('go-back', currentSettings);
+    },
+
+
   }
 };
 </script>
@@ -194,6 +224,52 @@ export default {
   display: flex;
   border-bottom: 1px solid #dee2e6;
   margin-bottom: 1rem;
+}
+
+@media (max-width: 991px) {
+  .filter-adjust-content {
+    flex-direction: column;
+    height: auto;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .controls-container {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 1.5rem;
+  }
+
+  .controls-tabs {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-adjust-content {
+    padding: 0.5rem;
+  }
+
+  .controls-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-button {
+    flex: 1 0 50%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .right-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .tab-button {
@@ -221,31 +297,6 @@ export default {
 .right-buttons {
   display: flex;
   gap: 0.5rem;
-}
-
-/* Estilos CSS para los filtros */
-.filter-aden {
-  filter: sepia(0.2) brightness(1.15) saturate(1.4);
-}
-
-.filter-clarendon {
-  filter: contrast(1.2) saturate(1.35);
-}
-
-.filter-crema {
-  filter: sepia(0.5) contrast(1.25) brightness(1.15) saturate(0.9);
-}
-
-.filter-gingham {
-  filter: brightness(1.05) contrast(1.1);
-}
-
-.filter-juno {
-  filter: sepia(0.35) contrast(1.15) brightness(1.15) saturate(1.8);
-}
-
-.filter-lark {
-  filter: contrast(0.9) brightness(1.1) saturate(1.1);
 }
 
 @media (max-width: 991px) {
