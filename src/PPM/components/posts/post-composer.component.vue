@@ -128,12 +128,23 @@ export default {
     }
   },
   methods: {
-    proceedToFilterAdjust() {
+
+    proceedToFilterAdjust(editorSettings) {
       this.showImageEditor = false;
       this.showFilterAdjust = true;
 
       if (this.uploadedImagesForEditor.length > 0 && this.currentImageIndex >= 0) {
         this.currentImageUrl = this.uploadedImagesForEditor[this.currentImageIndex].url;
+
+        // Guardar los ajustes del editor
+        if (!this.imageEditorSettings[this.currentImageIndex]) {
+          this.imageEditorSettings[this.currentImageIndex] = {};
+        }
+
+        this.imageEditorSettings[this.currentImageIndex] = {
+          ...this.imageEditorSettings[this.currentImageIndex],
+          ...editorSettings
+        };
 
         // Pasar los ajustes del editor al componente de filtros
         this.currentFilterSettings = {
@@ -162,12 +173,28 @@ export default {
         ...settings
       };
 
-      this.proceedToFilterAdjust();
+      this.proceedToFilterAdjust(settings);
     },
 
-    goBackToImageEditor() {
+    goBackToImageEditor(settings) {
       this.showFilterAdjust = false;
       this.showImageEditor = true;
+
+      // Actualizar los ajustes actuales con los que vienen del filtro
+      if (settings && this.currentImageIndex >= 0) {
+        if (!this.imageEditorSettings[this.currentImageIndex]) {
+          this.imageEditorSettings[this.currentImageIndex] = {};
+        }
+
+        // Combinar los ajustes existentes con los nuevos
+        this.imageEditorSettings[this.currentImageIndex] = {
+          ...this.imageEditorSettings[this.currentImageIndex],
+          ...settings.editorSettings
+        };
+
+        // También actualizar los ajustes de filtro si es necesario
+        this.currentFilterSettings = settings;
+      }
     },
 
     closeFilterAdjust() {
