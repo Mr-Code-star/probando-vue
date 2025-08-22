@@ -157,7 +157,19 @@ export default {
     }
   },
   methods: {
-    // Guardar ajustes actuales para una imagen específica
+    proceedToFilterAdjust() {
+      // Guardar ajustes actuales antes de proceder
+      this.saveCurrentSettings(this.currentImageIndex);
+
+      // Emitir los ajustes actuales
+      this.$emit('proceed', {
+        zoomLevel: this.currentZoomLevel,
+        aspectRatio: this.currentAspectRatio,
+        rotation: this.currentRotation,
+        imageIndex: this.currentImageIndex
+      });
+    },
+
     saveCurrentSettings(imageIndex) {
       if (imageIndex >= 0) {
         this.imageSettings[imageIndex] = {
@@ -168,7 +180,6 @@ export default {
       }
     },
 
-    // Cargar ajustes para una imagen específica
     loadSettingsForImage(imageIndex) {
       if (this.imageSettings[imageIndex]) {
         // Usar ajustes guardados
