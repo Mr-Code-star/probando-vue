@@ -47,32 +47,35 @@
         @apply-changes="applyVideoChanges"
     />
 
-    <!-- Diálogo para publicar solo texto -->
-    <text-only-dialog
-        v-if="showTextOnlyDialog"
-        :visible="showTextOnlyDialog"
-        :initial-content="content"
-        :loading="loading"
-        @close="closeTextOnlyDialog"
+    <!-- Diálogo para crear publicación (nuevo) -->
+    <create-post-dialog
+        v-if="showCreatePost"
+        :visible="showCreatePost"
+        :media-files="selectedMedia"
+        :current-media-index="currentImageIndex"
+        :filter-settings="finalFilterSettings"
+        @close="closeCreatePost"
+        @create-post="handleCreatePost"
     />
   </div>
 </template>
 
 <script>
+import CreatePostDialog from "./dialogs/create-post/create-post.component.vue";
 import FilterAdjustDialog from './dialogs/filter-adjust/filter-adjust.component.vue';
 import MediaUploadDialog from './dialogs/media-upload/media-upload.component.vue';
 import ImageEditorDialog from './dialogs/image-editor/image-editor.component.vue';
 import VideoEditorDialog from './dialogs/video-editor/video-editor.component.vue';
-import TextOnlyDialog from './dialogs/text-only/text-only.component.vue';
 
 export default {
   name: 'PostComposer',
   components: {
+    CreatePostDialog,
     FilterAdjustDialog,
     MediaUploadDialog,
     ImageEditorDialog,
-    VideoEditorDialog,
-    TextOnlyDialog
+    VideoEditorDialog
+
   },
   props: {
     postToEdit: {
@@ -86,15 +89,16 @@ export default {
       loading: false,
       showMediaUpload: true,
       showImageEditor: false,
+      showCreatePost: false,
       showVideoEditor: false,
       showFilterAdjust: false,
-      showTextOnlyDialog: false,
       selectedMedia: [],
       currentImageIndex: -1,
       currentImageUrl: '',
       currentVideoIndex: -1,
       currentVideoUrl: '',
       currentFilterSettings: {},
+      finalFilterSettings: {},
       imageEditorSettings: {} // Nuevo objeto para guardar ajustes del editor
     };
   },
@@ -118,11 +122,9 @@ export default {
         if (post) {
           this.content = post.content;
           this.showMediaUpload = false;
-          this.showTextOnlyDialog = true;
         } else {
           this.content = '';
           this.showMediaUpload = true;
-          this.showTextOnlyDialog = false;
         }
       }
     }
@@ -205,20 +207,34 @@ export default {
     applyFilterChanges(settings) {
       console.log('Aplicando filtros y ajustes:', settings);
 
-      // Combinar ajustes del editor con los filtros
-      const finalSettings = {
-        ...settings,
-        editorSettings: this.imageEditorSettings[this.currentImageIndex] || {}
-      };
-
       // Guardar los ajustes finales
-      this.currentFilterSettings = finalSettings;
+      this.finalFilterSettings = settings;
 
-      // Después de aplicar filtros, proceder al editor de texto
+      // Cerrar el diálogo de filtros y abrir el de creación de publicación
       this.showFilterAdjust = false;
-      this.showTextOnlyDialog = true;
+      this.showCreatePost = true;
     },
 
+    closeCreatePost() {
+      this.showCreatePost = false;
+      this.$emit('close');
+    },
+
+    handleCreatePost(postData) {
+      // Combinar los datos de la publicación con los ajustes de filtro
+      const completePostData = {
+        ...postData,
+        filterSettings: this.finalFilterSettings
+      };
+
+      console.log('Publicación completa:', completePostData);
+
+      // Emitir evento al componente padre
+      this.$emit('create-post', completePostData);
+
+      // Cerrar el diálogo
+      this.closeCreatePost();
+    },
     // Resto de métodos sin cambios...
     handleImageRemoved(index) {
       // Elimina la imagen del array selectedMedia
@@ -343,11 +359,7 @@ export default {
       console.log('Aplicando cambios al video:', settings);
     },
 
-    publishTextOnly() {
-      this.showMediaUpload = false;
-      this.showTextOnlyDialog = true;
-      this.selectedMedia = [];
-    },
+
 
     closeImageEditor() {
       this.showImageEditor = false;
@@ -359,10 +371,6 @@ export default {
       this.$emit('close')
     },
 
-    closeTextOnlyDialog() {
-      this.showTextOnlyDialog = false;
-      this.$emit('close');
-    },
 
     close() {
       // Liberar todas las URLs de objetos
