@@ -14,9 +14,13 @@
 
     <div class="post-creator-dialog">
       <div class="dialog-content">
-        <media-preview
-            :media-files="mediaFiles"
-            :current-media-index="currentMediaIndex"
+        <!-- Cambiar MediaPreview por ImagePreview para mostrar la proporción de aspecto -->
+        <ImagePreview
+            :imageUrl="currentMediaUrl"
+            :selectedFilter="filterSettings?.filter || 'normal'"
+            :adjustments="filterSettings?.adjustments || {}"
+            :editorSettings="editorSettings"
+            class="media-preview-content"
         />
 
         <post-form
@@ -53,20 +57,21 @@
 </template>
 
 <script>
-import MediaPreview from './components/media-preview.component.vue';
+import ImagePreview from '../filter-adjust/components/image-preview.component.vue'; // Importar ImagePreview
 import PostForm from './components/post-form.component.vue';
 
 export default {
   name: 'CreatePostDialog',
   components: {
-    MediaPreview,
+    ImagePreview, // Cambiar de MediaPreview a ImagePreview
     PostForm
   },
   props: {
     visible: Boolean,
     mediaFiles: Array,
     currentMediaIndex: Number,
-    filterSettings: Object
+    filterSettings: Object,
+    editorSettings: Object // Nueva prop para recibir ajustes del editor
   },
   data() {
     return {
@@ -81,6 +86,12 @@ export default {
   computed: {
     canShare() {
       return this.mediaFiles.length > 0;
+    },
+    currentMediaUrl() {
+      if (this.mediaFiles.length > 0 && this.currentMediaIndex >= 0) {
+        return URL.createObjectURL(this.mediaFiles[this.currentMediaIndex]);
+      }
+      return '';
     }
   },
   methods: {
@@ -109,6 +120,7 @@ export default {
         location: this.location,
         collaborators: this.collaborators,
         filterSettings: this.filterSettings,
+        editorSettings: this.editorSettings, // Incluir ajustes del editor
         shareOptions: this.shareOptions,
         accessibilitySettings: this.accessibilitySettings,
         advancedSettings: this.advancedSettings
@@ -133,6 +145,14 @@ export default {
   overflow: hidden;
 }
 
+.media-preview-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+
 .dialog-footer {
   display: flex;
   justify-content: space-between;
@@ -142,6 +162,10 @@ export default {
 @media (max-width: 768px) {
   .dialog-content {
     flex-direction: column;
+  }
+
+  .media-preview-content {
+    height: 300px;
   }
 }
 </style>
