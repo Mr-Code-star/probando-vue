@@ -38,19 +38,6 @@
         />
       </div>
 
-      <!-- Botón para publicar solo texto -->
-      <div class="text-only-section">
-        <div class="separator">
-          <span>O</span>
-        </div>
-        <pv-button
-            @click="$emit('publish-text-only')"
-            class="text-only-btn p-button-outlined"
-            icon="pi pi-font"
-        >
-          Publicar solo texto
-        </pv-button>
-      </div>
     </div>
   </pv-dialog>
 </template>
@@ -115,9 +102,7 @@ export default {
   margin: 0 auto;
 }
 
-.text-only-section {
-  text-align: center;
-}
+
 
 .separator {
   display: flex;
@@ -138,9 +123,7 @@ export default {
   padding: 0 1rem;
 }
 
-.text-only-btn {
-  width: 100%;
-}
+
 
 @media (max-width: 575px) {
   .media-upload-content {
