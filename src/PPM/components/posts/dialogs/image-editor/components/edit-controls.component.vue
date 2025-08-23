@@ -26,8 +26,8 @@
             type="range"
             :value="zoomLevel"
             @input="$emit('update:zoomLevel', Number($event.target.value))"
-            min="10"
-            max="200"
+            min="100"
+            max="300"
             step="5"
             class="zoom-slider"
         />
