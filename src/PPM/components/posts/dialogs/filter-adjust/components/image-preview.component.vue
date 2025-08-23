@@ -1,6 +1,6 @@
 <template>
   <div class="preview-container">
-    <div class="image-preview">
+    <div class="image-preview" :style="containerStyle">
       <img
           :src="imageUrl"
           :alt="'Vista previa con filtros'"
@@ -20,6 +20,36 @@ export default {
     editorSettings: Object  // Esta prop debe estar definida
   },
   computed: {
+    containerStyle() {
+      // Aplicar relación de aspecto al contenedor si existe
+      if (this.editorSettings?.aspectRatio && this.editorSettings.aspectRatio !== 'original') {
+        let aspectRatioValue;
+
+        switch(this.editorSettings.aspectRatio) {
+          case '1:1':
+            aspectRatioValue = '1/1';
+            break;
+          case '4:5':
+            aspectRatioValue = '4/5';
+            break;
+          case '16:9':
+            aspectRatioValue = '16/9';
+            break;
+          default:
+            return {};
+        }
+
+        return {
+          aspectRatio: aspectRatioValue,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        };
+      }
+
+      return {};
+    },
     computedFilterStyle() {
       // Primero aplicar el filtro base seleccionado
       let baseFilter = '';
@@ -89,17 +119,22 @@ export default {
       return transform.trim();
     },
     computedStyles() {
-      return {
+      const styles = {
         filter: this.computedFilterStyle.filter,
         transform: this.computedTransform || this.computedFilterStyle.transform,
-        // Aplicar relación de aspecto si existe
-        aspectRatio: this.editorSettings?.aspectRatio === '1:1' ? '1/1' :
-            this.editorSettings?.aspectRatio === '4:5' ? '4/5' :
-                this.editorSettings?.aspectRatio === '16:9' ? '16/9' : 'unset',
         objectFit: 'contain',
         maxWidth: '100%',
         maxHeight: '100%'
       };
+
+      // Si hay una relación de aspecto específica, forzar el recorte
+      if (this.editorSettings?.aspectRatio && this.editorSettings.aspectRatio !== 'original') {
+        styles.objectFit = 'cover';
+        styles.width = '100%';
+        styles.height = '100%';
+      }
+
+      return styles;
     },
   }
 };
@@ -112,7 +147,6 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: #f8f9fa;
   border-radius: 8px;
   overflow: hidden;
   max-height: 100%;
