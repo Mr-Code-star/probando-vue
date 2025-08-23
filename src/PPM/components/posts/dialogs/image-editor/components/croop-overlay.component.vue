@@ -102,7 +102,7 @@ export default {
   justify-content: center;
   z-index: 10;
   pointer-events: none;
-  background-color: #f8f9fa; /* Fondo para cuando no hay imagen */
+  background-color: transparent; /* Fondo transparente en lugar de gris */
 }
 
 .overlay-container {
@@ -126,8 +126,8 @@ export default {
 .crop-area {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-  border: 2px solid white;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Más transparente */
+  border: 2px dashed rgba(255, 255, 255, 0.8); /* Borde punteado más sutil */
 }
 
 .cropped-preview {
