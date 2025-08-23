@@ -1,6 +1,6 @@
 <template>
-  <div class="preview-container">
-    <div class="image-preview" :style="containerStyle">
+  <div class="preview-container" :style="containerStyle">
+    <div class="image-preview" :style="previewStyle">
       <img
           :src="imageUrl"
           :alt="'Vista previa con filtros'"
@@ -17,11 +17,23 @@ export default {
     imageUrl: String,
     selectedFilter: String,
     adjustments: Object,
-    editorSettings: Object  // Esta prop debe estar definida
+    editorSettings: Object
   },
   computed: {
     containerStyle() {
-      // Aplicar relación de aspecto al contenedor si existe
+      // Estilo del contenedor principal
+      return {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000',
+        overflow: 'hidden'
+      };
+    },
+    previewStyle() {
+      // Aplicar relación de aspecto al contenedor de la imagen
       if (this.editorSettings?.aspectRatio && this.editorSettings.aspectRatio !== 'original') {
         let aspectRatioValue;
 
@@ -36,11 +48,20 @@ export default {
             aspectRatioValue = '16/9';
             break;
           default:
-            return {};
+            return {
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            };
         }
 
         return {
           aspectRatio: aspectRatioValue,
+          width: '100%',
+          maxWidth: '100%',
+          maxHeight: '100%',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
@@ -48,7 +69,13 @@ export default {
         };
       }
 
-      return {};
+      return {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      };
     },
     computedFilterStyle() {
       // Primero aplicar el filtro base seleccionado
@@ -122,9 +149,9 @@ export default {
       const styles = {
         filter: this.computedFilterStyle.filter,
         transform: this.computedTransform || this.computedFilterStyle.transform,
-        objectFit: 'contain',
         maxWidth: '100%',
-        maxHeight: '100%'
+        maxHeight: '100%',
+        transition: 'all 0.3s ease'
       };
 
       // Si hay una relación de aspecto específica, forzar el recorte
@@ -132,6 +159,8 @@ export default {
         styles.objectFit = 'cover';
         styles.width = '100%';
         styles.height = '100%';
+      } else {
+        styles.objectFit = 'contain';
       }
 
       return styles;
@@ -163,7 +192,6 @@ export default {
 .image-preview img {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
   width: auto;
   height: auto;
 }

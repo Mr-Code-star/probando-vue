@@ -70,7 +70,7 @@
 
         <pv-button
             label="Siguiente"
-            @click="$emit('proceed')"
+            @click="proceedToFilterAdjust"
             icon="pi pi-arrow-right"
         />
       </div>

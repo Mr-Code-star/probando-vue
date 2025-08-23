@@ -200,7 +200,7 @@ export default {
     applyChanges() {
       // Combinar ajustes del editor con los filtros - CORREGIDO
       const finalSettings = {
-        editorSettings: this.initialSettings?.editorSettings || {}, // Usar initialSettings
+        editorSettings: this.initialSettings?.editorSettings || {},
         filter: this.selectedFilter,
         adjustments: { ...this.currentAdjustments }
       };
@@ -210,15 +210,15 @@ export default {
 
     // Nuevo método para volver al editor
     goBackToEditor() {
-      // Guardar los ajustes actuales antes de volver
+      // Pasar los ajustes actuales al volver
       const currentSettings = {
-        editorSettings: this.initialSettings?.editorSettings || {}, // Incluir editorSettings
+        editorSettings: this.initialSettings?.editorSettings || {},
         filter: this.selectedFilter,
         adjustments: { ...this.currentAdjustments }
       };
 
       this.$emit('go-back', currentSettings);
-    },
+    }
   }
 };
 </script>
