@@ -1,3 +1,5 @@
+[file name]: post-composer.component.vue
+[file content begin]
 <template>
   <div>
     <!-- Diálogo para subir medios -->
@@ -54,8 +56,9 @@
         :media-files="selectedMedia"
         :current-media-index="currentImageIndex"
         :filter-settings="finalFilterSettings"
-        @close="closeCreatePost"
-        @create-post="handleCreatePost"
+        :editor-settings="currentEditorSettings"
+    @close="closeCreatePost"
+    @create-post="handleCreatePost"
     />
   </div>
 </template>
@@ -75,7 +78,6 @@ export default {
     MediaUploadDialog,
     ImageEditorDialog,
     VideoEditorDialog
-
   },
   props: {
     postToEdit: {
@@ -99,7 +101,10 @@ export default {
       currentVideoUrl: '',
       currentFilterSettings: {},
       finalFilterSettings: {},
-      imageEditorSettings: {} // Nuevo objeto para guardar ajustes del editor
+      imageEditorSettings: {},
+      currentEditorSettings: {}, // NUEVA DATA para los ajustes actuales del editor
+      filterSettings: {},
+      combinedSettings: {}
     };
   },
   computed: {
@@ -130,38 +135,36 @@ export default {
     }
   },
   methods: {
-
     proceedToFilterAdjust(editorSettings) {
       this.showImageEditor = false;
       this.showFilterAdjust = true;
 
-      if (this.uploadedImagesForEditor.length > 0 && this.currentImageIndex >= 0) {
-        this.currentImageUrl = this.uploadedImagesForEditor[this.currentImageIndex].url;
-
-        // Guardar los ajustes del editor
-        if (!this.imageEditorSettings[this.currentImageIndex]) {
-          this.imageEditorSettings[this.currentImageIndex] = {};
-        }
-
+      // Guardar ajustes del editor
+      if (this.currentImageIndex >= 0) {
         this.imageEditorSettings[this.currentImageIndex] = {
           ...this.imageEditorSettings[this.currentImageIndex],
           ...editorSettings
         };
 
-        // Pasar los ajustes del editor al componente de filtros
-        this.currentFilterSettings = {
-          editorSettings: this.imageEditorSettings[this.currentImageIndex] || {},
-          filter: 'normal',
-          adjustments: {
-            brightness: 100,
-            contrast: 100,
-            saturation: 100,
-            fade: 0,
-            warmth: 0,
-            vignette: 0
-          }
+        // Actualizar los ajustes actuales del editor
+        this.currentEditorSettings = {
+          ...this.imageEditorSettings[this.currentImageIndex]
         };
       }
+
+      // Preparar ajustes iniciales para el filtro
+      this.currentFilterSettings = {
+        editorSettings: this.imageEditorSettings[this.currentImageIndex] || {},
+        filter: 'normal',
+        adjustments: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          fade: 0,
+          warmth: 0,
+          vignette: 0
+        }
+      };
     },
 
     saveImageEditorSettings(settings) {
@@ -175,6 +178,11 @@ export default {
         ...settings
       };
 
+      // Actualizar los ajustes actuales del editor
+      this.currentEditorSettings = {
+        ...this.imageEditorSettings[this.currentImageIndex]
+      };
+
       this.proceedToFilterAdjust(settings);
     },
 
@@ -182,20 +190,17 @@ export default {
       this.showFilterAdjust = false;
       this.showImageEditor = true;
 
-      // Actualizar los ajustes actuales con los que vienen del filtro
+      // Actualizar ajustes del editor con los que vienen del filtro
       if (settings && this.currentImageIndex >= 0) {
-        if (!this.imageEditorSettings[this.currentImageIndex]) {
-          this.imageEditorSettings[this.currentImageIndex] = {};
-        }
-
-        // Combinar los ajustes existentes con los nuevos
         this.imageEditorSettings[this.currentImageIndex] = {
           ...this.imageEditorSettings[this.currentImageIndex],
           ...settings.editorSettings
         };
 
-        // También actualizar los ajustes de filtro si es necesario
-        this.currentFilterSettings = settings;
+        // Actualizar los ajustes actuales del editor
+        this.currentEditorSettings = {
+          ...this.imageEditorSettings[this.currentImageIndex]
+        };
       }
     },
 
@@ -207,10 +212,27 @@ export default {
     applyFilterChanges(settings) {
       console.log('Aplicando filtros y ajustes:', settings);
 
-      // Guardar los ajustes finales
-      this.finalFilterSettings = settings;
+      // Combinar ajustes del editor con los filtros
+      this.combinedSettings = {
+        ...settings,
+        editorSettings: {
+          ...this.imageEditorSettings[this.currentImageIndex],
+          ...settings.editorSettings
+        }
+      };
 
-      // Cerrar el diálogo de filtros y abrir el de creación de publicación
+      // Guardar los ajustes finales
+      this.finalFilterSettings = this.combinedSettings;
+
+      // Actualizar los ajustes actuales del editor
+      if (settings.editorSettings) {
+        this.currentEditorSettings = {
+          ...this.imageEditorSettings[this.currentImageIndex],
+          ...settings.editorSettings
+        };
+      }
+
+      // Proceder a crear publicación
       this.showFilterAdjust = false;
       this.showCreatePost = true;
     },
@@ -221,21 +243,17 @@ export default {
     },
 
     handleCreatePost(postData) {
-      // Combinar los datos de la publicación con los ajustes de filtro
       const completePostData = {
         ...postData,
-        filterSettings: this.finalFilterSettings
+        filterSettings: this.finalFilterSettings,
+        editorSettings: this.imageEditorSettings
       };
 
       console.log('Publicación completa:', completePostData);
-
-      // Emitir evento al componente padre
       this.$emit('create-post', completePostData);
-
-      // Cerrar el diálogo
       this.closeCreatePost();
     },
-    // Resto de métodos sin cambios...
+
     handleImageRemoved(index) {
       // Elimina la imagen del array selectedMedia
       this.selectedMedia.splice(index, 1);
@@ -267,6 +285,7 @@ export default {
       this.selectedMedia = [];
       this.currentImageIndex = -1;
       this.imageEditorSettings = {}; // Limpiar ajustes
+      this.currentEditorSettings = {}; // Limpiar ajustes actuales
     },
 
     goBackToMediaUploadFromVideo() {
@@ -282,6 +301,7 @@ export default {
       this.selectedMedia = [];
       this.currentVideoIndex = -1;
       this.currentVideoUrl = '';
+      this.currentEditorSettings = {}; // Limpiar ajustes actuales
     },
 
     isImage(file) {
@@ -306,6 +326,15 @@ export default {
     handleImageSelectedInEditor(index) {
       // Actualizar el índice actual cuando el usuario selecciona una imagen diferente
       this.currentImageIndex = index;
+
+      // Actualizar los ajustes actuales del editor para la imagen seleccionada
+      if (this.imageEditorSettings[index]) {
+        this.currentEditorSettings = {
+          ...this.imageEditorSettings[index]
+        };
+      } else {
+        this.currentEditorSettings = {};
+      }
     },
 
     processFiles(files) {
@@ -341,6 +370,16 @@ export default {
       if (this.isImage(file)) {
         this.currentImageIndex = index; // Guardar el índice actual
         this.currentImageUrl = this.getObjectURL(file);
+
+        // Cargar ajustes del editor para esta imagen si existen
+        if (this.imageEditorSettings[index]) {
+          this.currentEditorSettings = {
+            ...this.imageEditorSettings[index]
+          };
+        } else {
+          this.currentEditorSettings = {};
+        }
+
         this.showImageEditor = true;
         this.showMediaUpload = false;
       } else if (this.isVideo(file)) {
@@ -359,8 +398,6 @@ export default {
       console.log('Aplicando cambios al video:', settings);
     },
 
-
-
     closeImageEditor() {
       this.showImageEditor = false;
       this.$emit('close')
@@ -370,7 +407,6 @@ export default {
       this.showVideoEditor = false;
       this.$emit('close')
     },
-
 
     close() {
       // Liberar todas las URLs de objetos
@@ -386,6 +422,7 @@ export default {
       this.currentImageIndex = -1;
       this.currentVideoIndex = -1;
       this.imageEditorSettings = {}; // Limpiar ajustes
+      this.currentEditorSettings = {}; // Limpiar ajustes actuales
 
       this.$emit('close');
     }
@@ -467,3 +504,4 @@ export default {
   }
 }
 </style>
+[file content end]
