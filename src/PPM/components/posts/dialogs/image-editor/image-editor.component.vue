@@ -1,4 +1,3 @@
-
 <!-- image-editor.component.vue -->
 <template>
   <pv-dialog
@@ -291,10 +290,10 @@ export default {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #f8f9fa;
+  background: transparent; /* Cambiado de #f8f9fa a transparente */
   border-radius: 8px;
   position: relative;
-  border: 1px solid #dee2e6;
+  border: none; /* Eliminado el borde blanco */
 }
 
 .editor-controls {
