@@ -83,14 +83,14 @@ import ImagePreview from "./components/imagen-preview.component.vue";
 import ImageGallery from "./components/imagen-gallery.component.vue";
 import EditorControls from "./components/edit-controls.component.vue";
 import ActionButtons from "./components/action-buttons.component.vue";
-import CropOverlay from "./components/croop-overlay.vue";
+import CroopOverlayComponent from "./components/croop-overlay.component.vue";
 
 export default {
   name: 'ImageEditorDialog',
   components: {
     ImagePreview,
     ImageGallery,
-    CropOverlay,
+    CropOverlay: CroopOverlayComponent,
     EditorControls,
     ActionButtons
   },
