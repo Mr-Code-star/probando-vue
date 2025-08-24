@@ -3,7 +3,6 @@
       :visible="visible"
       :modal="true"
       :closable="true"
-      :style="{ width: '50rem' }"
       :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
       @update:visible="$emit('close')"
   >
@@ -55,14 +54,15 @@ export default {
     };
   },
   methods: {
+
     handleDrop(e) {
       this.dragOver = false;
       const files = Array.from(e.dataTransfer.files);
-      this.$emit('process-files', files);
+      this.$emit('process-files', files); // Cambia el nombre del evento
     },
     handleFileSelect(e) {
       const files = Array.from(e.files);
-      this.$emit('process-files', files);
+      this.$emit('process-files', files); // Cambia el nombre del evento
     }
   }
 };

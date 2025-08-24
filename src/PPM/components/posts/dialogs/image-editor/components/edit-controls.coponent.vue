@@ -2,7 +2,7 @@
   <div>
     <!-- Selector de proporción de aspecto -->
     <div class="control-group">
-      <label>Proporción de aspecto</label>
+      <pv-float-label>Proporción de aspecto</pv-float-label>
       <div class="aspect-ratio-selector">
         <select
             :value="aspectRatio"
@@ -19,7 +19,7 @@
 
     <!-- Controles de zoom -->
     <div class="control-group">
-      <label>Zoom: {{ zoomLevel }}%</label>
+      <pv-float-label>Zoom: {{ zoomLevel }}%</pv-float-label>
       <div class="slider-container">
         <button @click="$emit('adjust-zoom', -10)" class="control-btn">-</button>
         <input
@@ -39,8 +39,11 @@
 </template>
 
 <script>
+import {FloatLabel as PvFloatLabel} from "primevue";
+
 export default {
   name: 'EditorControls',
+  components: {PvFloatLabel},
   props: {
     zoomLevel: Number,
     aspectRatio: {
