@@ -3,60 +3,115 @@
       :visible="visible"
       :modal="true"
       :closable="true"
-      :style="{ width: '80rem', maxWidth: '95vw' }"
-      :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
+      :style="{ width: '70rem', maxWidth: '95vw' }"
+      :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
       @update:visible="$emit('close')"
   >
     <template #header>
       <div class="dialog-header">
-        <h3>Editar imagen</h3>
+        <h3>Aplicar Filtros</h3>
+        <pv-button
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-sm"
+            @click="$emit('go-back')"
+            label="Volver al editor"
+        />
       </div>
     </template>
 
     <div class="filter-adjust-content">
-      <!-- Componente ImagePreview -->
-      <ImagePreview
-          :imageUrl="imageUrl"
-          :selectedFilter="selectedFilter"
-          :adjustments="currentAdjustments"
-          :editorSettings="initialSettings?.editorSettings || {}"
-          :key="previewKey"
-      />
+      <!-- Vista previa de la imagen con filtros -->
+      <div class="preview-section">
+        <image-preview-of-filter
+            :image-data="editedImageData"
+            :filter-settings="currentFilterSettings"
+        />
+      </div>
 
+      <!-- Controles de filtros -->
       <div class="controls-container">
         <div class="controls-tabs">
           <button
               :class="['tab-button', { active: activeTab === 'filters' }]"
               @click="activeTab = 'filters'"
           >
+            <i class="pi pi-filter" style="margin-right: 8px;"></i>
             Filtros
           </button>
           <button
               :class="['tab-button', { active: activeTab === 'adjustments' }]"
               @click="activeTab = 'adjustments'"
           >
+            <i class="pi pi-cog" style="margin-right: 8px;"></i>
             Ajustes
           </button>
         </div>
 
-        <div class="controls-content">
-          <!-- Componente FilterTab -->
-          <FilterTab
-              v-if="activeTab === 'filters'"
-              :imageUrl="imageUrl"
-              :filters="filters"
-              :selectedFilter="selectedFilter"
-              @select-filter="selectFilter"
-              :key="filterTabKey"
-          />
+        <!-- Contenido de pestañas -->
+        <div class="tab-content">
+          <div v-if="activeTab === 'filters'" class="tab-pane">
+            <h4>Filtros Predefinidos</h4>
+            <div class="filter-grid">
+              <button
+                  v-for="filter in presetFilters"
+                  :key="filter.name"
+                  :class="['filter-preset', { active: currentFilter === filter.name }]"
+                  @click="applyPresetFilter(filter)"
+              >
+                <div class="filter-thumbnail" :style="getFilterThumbnailStyle(filter)"></div>
+                <span class="filter-name">{{ filter.name }}</span>
+              </button>
+            </div>
+          </div>
 
-          <!-- Componente AdjustmentsTab -->
-          <AdjustmentsTab
-              v-if="activeTab === 'adjustments'"
-              :adjustments="adjustments"
-              :currentValues="currentAdjustments"
-              @update-adjustment="updateAdjustment"
-          />
+          <div v-else class="tab-pane">
+            <h4>Ajustes Manuales</h4>
+            <div class="adjustment-controls">
+              <div class="control-group">
+                <label>Brillo: {{ currentFilterSettings.brightness || 100 }}%</label>
+                <input
+                    type="range"
+                    v-model.number="currentFilterSettings.brightness"
+                    min="0"
+                    max="200"
+                    class="slider"
+                />
+              </div>
+
+              <div class="control-group">
+                <label>Contraste: {{ currentFilterSettings.contrast || 100 }}%</label>
+                <input
+                    type="range"
+                    v-model.number="currentFilterSettings.contrast"
+                    min="0"
+                    max="200"
+                    class="slider"
+                />
+              </div>
+
+              <div class="control-group">
+                <label>Saturación: {{ currentFilterSettings.saturation || 100 }}%</label>
+                <input
+                    type="range"
+                    v-model.number="currentFilterSettings.saturation"
+                    min="0"
+                    max="200"
+                    class="slider"
+                />
+              </div>
+
+              <div class="control-group">
+                <label>Matiz: {{ currentFilterSettings.hue || 0 }}°</label>
+                <input
+                    type="range"
+                    v-model.number="currentFilterSettings.hue"
+                    min="-180"
+                    max="180"
+                    class="slider"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -64,160 +119,86 @@
     <template #footer>
       <div class="editor-footer">
         <pv-button
-            label="Volver"
+            label="Cancelar"
             class="p-button-text"
-            @click="goBackToEditor"
-            icon="pi pi-arrow-left"
+            @click="$emit('close')"
+            icon="pi pi-times"
         />
 
-        <div class="right-buttons">
-          <pv-button
-              label="Restablecer"
-              class="p-button-text"
-              @click="resetAdjustments"
-              icon="pi pi-refresh"
-          />
-          <pv-button
-              label="Aplicar"
-              @click="applyChanges"
-              icon="pi pi-check"
-          />
-        </div>
+        <pv-button
+            label="Aplicar Filtro"
+            icon="pi pi-check"
+            @click="applyFilter"
+            class="p-button-primary"
+        />
       </div>
     </template>
   </pv-dialog>
 </template>
 
 <script>
-import AdjustmentsTab from '../filter-adjust/components/adjustments-tab.component.vue';
-import FilterTab from '../filter-adjust/components/filter-tab.component.vue';
-import ImagePreview from '../filter-adjust/components/image-preview.component.vue';
+import { Button as PvButton } from "primevue";
+import ImagePreviewOfFilter from "../filter-adjust/components/image-preview-of-filter.vue";
 
 export default {
   name: 'FilterAdjustDialog',
   components: {
-    AdjustmentsTab,
-    FilterTab,
-    ImagePreview
+    PvButton,
+    ImagePreviewOfFilter
   },
   props: {
     visible: Boolean,
-    imageUrl: String,
-    initialSettings: Object
+    editedImageData: {
+      type: Object,
+      default: () => ({})
+    }
   },
   data() {
     return {
       activeTab: 'filters',
-      selectedFilter: 'normal',
-      currentAdjustments: {
-        brightness: 100,
-        contrast: 100,
-        saturation: 100,
-        fade: 0,
-        warmth: 0,
-        vignette: 0
-      },
-      filters: [
-        { name: 'Normal', class: 'normal' },
-        { name: 'Aden', class: 'filter-aden' },
-        { name: 'Clarendon', class: 'filter-clarendon' },
-        { name: 'Crema', class: 'filter-crema' },
-        { name: 'Gingham', class: 'filter-gingham' },
-        { name: 'Juno', class: 'filter-juno' },
-        { name: 'Lark', class: 'filter-lark' }
-      ],
-      adjustments: [
-        { name: 'brightness', label: 'Brillo', min: 0, max: 200, step: 1 },
-        { name: 'contrast', label: 'Contraste', min: 0, max: 200, step: 1 },
-        { name: 'saturation', label: 'Saturación', min: 0, max: 200, step: 1 },
-        { name: 'fade', label: 'Atenuar', min: 0, max: 100, step: 1 },
-        { name: 'warmth', label: 'Temperatura', min: -100, max: 100, step: 1 },
-        { name: 'vignette', label: 'Viñeta', min: 0, max: 100, step: 1 }
-      ],
-      previewKey: 0, // Key para forzar re-render de ImagePreview
-      filterTabKey: 0, // Key para forzar re-render de FilterTab
-      editorSettings: {} // Nuevo: almacenar ajustes del editor
+      currentFilter: null,
+      currentFilterSettings: {},
+      presetFilters: [
+        { name: 'Normal', brightness: 100, contrast: 100, saturation: 100, hue: 0 },
+        { name: 'Claro', brightness: 120, contrast: 90, saturation: 110, hue: 0 },
+        { name: 'Oscuro', brightness: 80, contrast: 110, saturation: 90, hue: 0 },
+        { name: 'Vivido', brightness: 100, contrast: 100, saturation: 150, hue: 0 },
+        { name: 'Sepia', brightness: 100, contrast: 90, saturation: 50, hue: 30 },
+        { name: 'BN', brightness: 100, contrast: 110, saturation: 0, hue: 0 }
+      ]
     };
   },
-  computed: {
-    combinedAdjustments() {
+  methods: {
+    applyPresetFilter(filter) {
+      this.currentFilter = filter.name;
+      this.currentFilterSettings = { ...filter };
+    },
+
+    applyFilter() {
+      this.$emit('filter-applied', {
+        ...this.editedImageData,
+        filterSettings: { ...this.currentFilterSettings }
+      });
+      this.$emit('close');
+    },
+
+    getFilterThumbnailStyle(filter) {
       return {
-        ...this.currentAdjustments,
-        editorSettings: this.initialSettings?.editorSettings || {}
+        filter: `brightness(${filter.brightness}%) contrast(${filter.contrast}%) saturate(${filter.saturation}%) hue-rotate(${filter.hue}deg)`,
+        backgroundImage: `url(${this.editedImageData.imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
       };
     }
   },
+
   watch: {
     visible(newVal) {
-      if (newVal && this.initialSettings) {
-        // Cargar ajustes iniciales si existen
-        if (this.initialSettings.filter) {
-          this.selectedFilter = this.initialSettings.filter;
-        }
-        if (this.initialSettings.adjustments) {
-          this.currentAdjustments = { ...this.initialSettings.adjustments };
-        }
-        // Forzar re-render para mostrar los ajustes correctos
-        this.previewKey += 1;
+      if (newVal) {
+        // Resetear filtros cuando se abre el diálogo
+        this.currentFilter = null;
+        this.currentFilterSettings = {};
       }
-    }
-  },
-  methods: {
-    selectFilter(filterClass) {
-      this.selectedFilter = filterClass;
-    },
-    updateAdjustment(name, value) {
-      this.currentAdjustments[name] = Number(value);
-    },
-    resetAdjustments() {
-      // Resetear valores
-      this.selectedFilter = 'normal';
-      this.currentAdjustments = {
-        brightness: 100,
-        contrast: 100,
-        saturation: 100,
-        fade: 0,
-        warmth: 0,
-        vignette: 0
-      };
-
-      // Forzar re-render de los componentes
-      this.previewKey += 1;
-      this.filterTabKey += 1;
-
-      // Si estamos en la pestaña de ajustes, también necesitamos actualizar los sliders
-      if (this.activeTab === 'adjustments') {
-        // Forzar re-render de AdjustmentsTab también
-        this.$nextTick(() => {
-          // Esto asegurará que los sliders se actualicen visualmente
-          this.activeTab = 'filters';
-          this.$nextTick(() => {
-            this.activeTab = 'adjustments';
-          });
-        });
-      }
-    },
-    applyChanges() {
-      // Combinar ajustes del editor con los filtros - CORREGIDO
-      const finalSettings = {
-        editorSettings: this.initialSettings?.editorSettings || {},
-        filter: this.selectedFilter,
-        adjustments: { ...this.currentAdjustments }
-      };
-
-      this.$emit('apply-changes', finalSettings);
-    },
-
-    // Nuevo método para volver al editor
-    goBackToEditor() {
-      // Pasar los ajustes actuales al volver
-      const currentSettings = {
-        editorSettings: this.initialSettings?.editorSettings || {},
-        filter: this.selectedFilter,
-        adjustments: { ...this.currentAdjustments }
-      };
-
-      this.$emit('go-back', currentSettings);
     }
   }
 };
@@ -226,83 +207,144 @@ export default {
 <style scoped>
 .filter-adjust-content {
   display: flex;
-  height: 70vh;
-  max-height: 600px;
+  gap: 2rem;
+  height: 60vh;
+  max-height: 500px;
+}
+
+.preview-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .controls-container {
-  width: 320px;
+  width: 300px;
   display: flex;
   flex-direction: column;
-  margin-left: 1.5rem;
 }
 
 .controls-tabs {
   display: flex;
-  border-bottom: 1px solid #dee2e6;
-  margin-bottom: 1rem;
-}
-
-@media (max-width: 991px) {
-  .filter-adjust-content {
-    flex-direction: column;
-    height: auto;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  .controls-container {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 1.5rem;
-  }
-
-  .controls-tabs {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 768px) {
-  .filter-adjust-content {
-    padding: 0.5rem;
-  }
-
-  .controls-tabs {
-    flex-wrap: wrap;
-  }
-
-  .tab-button {
-    flex: 1 0 50%;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .editor-footer {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .right-buttons {
-    width: 100%;
-    justify-content: space-between;
-  }
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1.5rem;
 }
 
 .tab-button {
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  color: #495057;
 }
 
 .tab-button.active {
   color: #4263eb;
   border-bottom-color: #4263eb;
+}
+
+.tab-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.filter-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-preset:hover {
+  border-color: #4263eb;
+  transform: translateY(-2px);
+}
+
+.filter-preset.active {
+  border-color: #4263eb;
+  background-color: rgba(66, 99, 235, 0.1);
+}
+
+.filter-thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  background-size: cover;
+  background-position: center;
+}
+
+.filter-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.adjustment-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-group label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e9ecef;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4263eb;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4263eb;
+  cursor: pointer;
+  border: none;
 }
 
 .editor-footer {
@@ -311,21 +353,38 @@ export default {
   width: 100%;
 }
 
-.right-buttons {
+.dialog-header {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 @media (max-width: 991px) {
   .filter-adjust-content {
     flex-direction: column;
     height: auto;
+    max-height: 70vh;
   }
 
   .controls-container {
     width: 100%;
-    margin-left: 0;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .preview-section {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 575px) {
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-thumbnail {
+    width: 50px;
+    height: 50px;
   }
 }
 </style>

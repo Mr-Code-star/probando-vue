@@ -1,507 +1,144 @@
-[file name]: post-composer.component.vue
-[file content begin]
 <template>
   <div>
-    <!-- Diálogo para subir medios -->
     <media-upload-dialog
         v-if="showMediaUpload"
         :visible="showMediaUpload"
-        :selected-media="selectedMedia"
-        @close="close"
-        @process-files="processFiles"
-        @remove-media="removeMedia"
-        @publish-text-only="publishTextOnly"
+        @close="closeDialog"
+        @process-files="handleFilesProcessed"
     />
 
-    <!-- Diálogo para editar imagen -->
     <image-editor-dialog
         v-if="showImageEditor"
         :visible="showImageEditor"
-        :uploaded-images="uploadedImagesForEditor"
+        :uploaded-images="uploadedImages"
         :current-image-index="currentImageIndex"
-        @image-removed="handleImageRemoved"
-        @close="closeImageEditor"
-        @go-back="goBackToMediaUpload"
-        @proceed="proceedToFilterAdjust"
-        @apply-changes="saveImageEditorSettings"
-        @image-added="handleImageAddedInEditor"
-        @image-selected="handleImageSelectedInEditor"
+        @close="closeDialog"
+        @go-back="goBackToUpload"
+        @accept-image="handleImageAccepted"
     />
 
-    <!-- Diálogo para filtros y ajustes -->
     <filter-adjust-dialog
-        v-if="showFilterAdjust"
-        :visible="showFilterAdjust"
-        :image-url="currentImageUrl"
-        :initial-settings="currentFilterSettings"
-        @close="closeFilterAdjust"
+        v-if="showFilterEditor"
+        :visible="showFilterEditor"
+        :edited-image-data="editedImageData"
+        @close="closeDialog"
         @go-back="goBackToImageEditor"
-        @apply-changes="applyFilterChanges"
-    />
-
-    <!-- Diálogo para editar video -->
-    <video-editor-dialog
-        v-if="showVideoEditor"
-        :visible="showVideoEditor"
-        :video-url="currentVideoUrl"
-        @close="closeVideoEditor"
-        @go-back="goBackToMediaUploadFromVideo"
-        @apply-changes="applyVideoChanges"
-    />
-
-    <!-- Diálogo para crear publicación (nuevo) -->
-    <create-post-dialog
-        v-if="showCreatePost"
-        :visible="showCreatePost"
-        :media-files="selectedMedia"
-        :current-media-index="currentImageIndex"
-        :filter-settings="finalFilterSettings"
-        :editor-settings="currentEditorSettings"
-    @close="closeCreatePost"
-    @create-post="handleCreatePost"
     />
   </div>
 </template>
 
 <script>
-import CreatePostDialog from "./dialogs/create-post/create-post.component.vue";
-import FilterAdjustDialog from './dialogs/filter-adjust/filter-adjust.component.vue';
 import MediaUploadDialog from './dialogs/media-upload/media-upload.component.vue';
-import ImageEditorDialog from './dialogs/image-editor/image-editor.component.vue';
-import VideoEditorDialog from './dialogs/video-editor/video-editor.component.vue';
+import ImageEditorDialog from './dialogs/image-editor/image-editor.componet.vue';
+import FilterAdjustDialog from "./dialogs/filter-adjust/filter-adjust.component.vue";
+
+// Constantes para los estados del componente
+const COMPONENT_STATES = {
+  MEDIA_UPLOAD: 'MEDIA_UPLOAD',
+  IMAGE_EDITOR: 'IMAGE_EDITOR',
+  FILTER_EDITOR: 'FILTER_EDITOR',
+  CLOSED: 'CLOSED'
+};
 
 export default {
   name: 'PostComposer',
   components: {
-    CreatePostDialog,
-    FilterAdjustDialog,
     MediaUploadDialog,
     ImageEditorDialog,
-    VideoEditorDialog
-  },
-  props: {
-    postToEdit: {
-      type: Object,
-      default: null
-    }
+    FilterAdjustDialog
   },
   data() {
     return {
-      content: '',
-      loading: false,
-      showMediaUpload: true,
-      showImageEditor: false,
-      showCreatePost: false,
-      showVideoEditor: false,
-      showFilterAdjust: false,
-      selectedMedia: [],
-      currentImageIndex: -1,
-      currentImageUrl: '',
-      currentVideoIndex: -1,
-      currentVideoUrl: '',
-      currentFilterSettings: {},
-      finalFilterSettings: {},
-      imageEditorSettings: {},
-      currentEditorSettings: {}, // NUEVA DATA para los ajustes actuales del editor
-      filterSettings: {},
-      combinedSettings: {}
+      currentState: COMPONENT_STATES.MEDIA_UPLOAD,
+      uploadedImages: [],
+      currentImageIndex: 0,
+      editedImageData: null
     };
   },
   computed: {
-    editing() {
-      return !!this.postToEdit;
+    showMediaUpload() {
+      return this.currentState === COMPONENT_STATES.MEDIA_UPLOAD;
     },
-    uploadedImagesForEditor() {
-      return this.selectedMedia
-          .filter(file => this.isImage(file))
-          .map(file => ({
-            url: this.getObjectURL(file),
-            file: file
-          }));
-    }
-  },
-  watch: {
-    postToEdit: {
-      immediate: true,
-      handler(post) {
-        if (post) {
-          this.content = post.content;
-          this.showMediaUpload = false;
-        } else {
-          this.content = '';
-          this.showMediaUpload = true;
-        }
-      }
+    showImageEditor() {
+      return this.currentState === COMPONENT_STATES.IMAGE_EDITOR;
+    },
+    showFilterEditor(){
+      return this.currentState === COMPONENT_STATES.FILTER_EDITOR;
     }
   },
   methods: {
-    proceedToFilterAdjust(editorSettings) {
-      this.showImageEditor = false;
-      this.showFilterAdjust = true;
+    /**
+     * Procesa los archivos seleccionados y cambia al editor de imágenes
+     * @param {File[]} files - Archivos a procesar
+     */
+    handleFilesProcessed(files) {
+      // Crear objetos de imagen con URLs para previsualización
+      this.uploadedImages = files.map(file => ({
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name
+      }));
 
-      // Guardar ajustes del editor
-      if (this.currentImageIndex >= 0) {
-        this.imageEditorSettings[this.currentImageIndex] = {
-          ...this.imageEditorSettings[this.currentImageIndex],
-          ...editorSettings
-        };
-
-        // Actualizar los ajustes actuales del editor
-        this.currentEditorSettings = {
-          ...this.imageEditorSettings[this.currentImageIndex]
-        };
-      }
-
-      // Preparar ajustes iniciales para el filtro
-      this.currentFilterSettings = {
-        editorSettings: this.imageEditorSettings[this.currentImageIndex] || {},
-        filter: 'normal',
-        adjustments: {
-          brightness: 100,
-          contrast: 100,
-          saturation: 100,
-          fade: 0,
-          warmth: 0,
-          vignette: 0
-        }
-      };
+      this.changeState(COMPONENT_STATES.IMAGE_EDITOR);
     },
 
-    saveImageEditorSettings(settings) {
-      // Guardar los ajustes del editor para la imagen actual
-      if (!this.imageEditorSettings[this.currentImageIndex]) {
-        this.imageEditorSettings[this.currentImageIndex] = {};
-      }
-
-      this.imageEditorSettings[this.currentImageIndex] = {
-        ...this.imageEditorSettings[this.currentImageIndex],
-        ...settings
-      };
-
-      // Actualizar los ajustes actuales del editor
-      this.currentEditorSettings = {
-        ...this.imageEditorSettings[this.currentImageIndex]
-      };
-
-      this.proceedToFilterAdjust(settings);
+    /**
+     * Maneja la imagen aceptada del editor
+     * @param {Object} imageData - Datos de la imagen editada
+     */
+    handleImageAccepted(imageData) {
+      this.editedImageData = imageData;
+      this.changeState(COMPONENT_STATES.FILTER_EDITOR);
     },
 
-    goBackToImageEditor(settings) {
-      this.showFilterAdjust = false;
-      this.showImageEditor = true;
-
-      // Actualizar ajustes del editor con los que vienen del filtro
-      if (settings && this.currentImageIndex >= 0) {
-        this.imageEditorSettings[this.currentImageIndex] = {
-          ...this.imageEditorSettings[this.currentImageIndex],
-          ...settings.editorSettings
-        };
-
-        // Actualizar los ajustes actuales del editor
-        this.currentEditorSettings = {
-          ...this.imageEditorSettings[this.currentImageIndex]
-        };
-      }
+    /**
+     * Cambia el estado del componente
+     * @param {string} newState - Nuevo estado
+     */
+    changeState(newState) {
+      this.currentState = newState;
     },
 
-    closeFilterAdjust() {
-      this.showFilterAdjust = false;
+    /**
+     * Cierra el diálogo actual y limpia los recursos
+     */
+    closeDialog() {
+      // Liberar URLs creadas para evitar fugas de memoria
+      this.cleanupImageUrls();
+      this.changeState(COMPONENT_STATES.CLOSED);
       this.$emit('close');
     },
 
-    applyFilterChanges(settings) {
-      console.log('Aplicando filtros y ajustes:', settings);
-
-      // Combinar ajustes del editor con los filtros
-      this.combinedSettings = {
-        ...settings,
-        editorSettings: {
-          ...this.imageEditorSettings[this.currentImageIndex],
-          ...settings.editorSettings
-        }
-      };
-
-      // Guardar los ajustes finales
-      this.finalFilterSettings = this.combinedSettings;
-
-      // Actualizar los ajustes actuales del editor
-      if (settings.editorSettings) {
-        this.currentEditorSettings = {
-          ...this.imageEditorSettings[this.currentImageIndex],
-          ...settings.editorSettings
-        };
-      }
-
-      // Proceder a crear publicación
-      this.showFilterAdjust = false;
-      this.showCreatePost = true;
+    /**
+     * Vuelve al diálogo de subida de medios
+     */
+    goBackToUpload() {
+      this.changeState(COMPONENT_STATES.MEDIA_UPLOAD);
     },
 
-    closeCreatePost() {
-      this.showCreatePost = false;
-      this.$emit('close');
+    /**
+     * Vuelve al editor de imágenes desde el editor de filtros
+     */
+    goBackToImageEditor() {
+      this.changeState(COMPONENT_STATES.IMAGE_EDITOR);
     },
 
-    handleCreatePost(postData) {
-      const completePostData = {
-        ...postData,
-        filterSettings: this.finalFilterSettings,
-        editorSettings: this.imageEditorSettings
-      };
-
-      console.log('Publicación completa:', completePostData);
-      this.$emit('create-post', completePostData);
-      this.closeCreatePost();
-    },
-
-    handleImageRemoved(index) {
-      // Elimina la imagen del array selectedMedia
-      this.selectedMedia.splice(index, 1);
-
-      // Ajusta el índice actual si es necesario
-      if (this.currentImageIndex >= index) {
-        this.currentImageIndex = Math.max(0, this.currentImageIndex - 1);
-      }
-
-      // Si no quedan imágenes, cierra el editor o toma la acción apropiada
-      if (this.selectedMedia.filter(file => this.isImage(file)).length === 0) {
-        this.showImageEditor = false;
-        this.showMediaUpload = true;
-      }
-    },
-
-    goBackToMediaUpload() {
-      this.showImageEditor = false;
-      this.showMediaUpload = true;
-
-      // Liberar URLs de objetos para evitar fugas de memoria
-      this.uploadedImagesForEditor.forEach(img => {
-        if (img.url.startsWith('blob:')) {
-          URL.revokeObjectURL(img.url);
+    /**
+     * Libera las URLs de objeto creadas para las imágenes
+     */
+    cleanupImageUrls() {
+      this.uploadedImages.forEach(image => {
+        if (image.url && image.url.startsWith('blob:')) {
+          URL.revokeObjectURL(image.url);
         }
       });
-
-      // Limpiar el array de imágenes seleccionadas
-      this.selectedMedia = [];
-      this.currentImageIndex = -1;
-      this.imageEditorSettings = {}; // Limpiar ajustes
-      this.currentEditorSettings = {}; // Limpiar ajustes actuales
-    },
-
-    goBackToMediaUploadFromVideo() {
-      this.showVideoEditor = false;
-      this.showMediaUpload = true;
-
-      // Liberar URL del video
-      if (this.currentVideoUrl && this.currentVideoUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(this.currentVideoUrl);
-      }
-
-      // Limpiar el array de medios seleccionados
-      this.selectedMedia = [];
-      this.currentVideoIndex = -1;
-      this.currentVideoUrl = '';
-      this.currentEditorSettings = {}; // Limpiar ajustes actuales
-    },
-
-    isImage(file) {
-      return file.type.startsWith('image/');
-    },
-
-    isVideo(file) {
-      return file.type.startsWith('video/');
-    },
-
-    handleImageAddedInEditor(file) {
-      // Agregar la nueva imagen al array selectedMedia
-      this.selectedMedia.push(file);
-      // Actualizar el índice actual para apuntar a la nueva imagen
-      this.currentImageIndex = this.selectedMedia.length - 1;
-    },
-
-    getObjectURL(file) {
-      return URL.createObjectURL(file);
-    },
-
-    handleImageSelectedInEditor(index) {
-      // Actualizar el índice actual cuando el usuario selecciona una imagen diferente
-      this.currentImageIndex = index;
-
-      // Actualizar los ajustes actuales del editor para la imagen seleccionada
-      if (this.imageEditorSettings[index]) {
-        this.currentEditorSettings = {
-          ...this.imageEditorSettings[index]
-        };
-      } else {
-        this.currentEditorSettings = {};
-      }
-    },
-
-    processFiles(files) {
-      const validFiles = files.filter(file =>
-          file.type.startsWith('image/') || file.type.startsWith('video/')
-      );
-
-      this.selectedMedia = [...this.selectedMedia, ...validFiles];
-
-      if (validFiles.some(file => this.isImage(file))) {
-        const firstImageIndex = this.selectedMedia.findIndex(file => this.isImage(file));
-        if (firstImageIndex !== -1) {
-          this.editMedia(firstImageIndex);
-        }
-      } else if (validFiles.some(file => this.isVideo(file))) {
-        const firstVideoIndex = this.selectedMedia.findIndex(file => this.isVideo(file));
-        if (firstVideoIndex !== -1) {
-          this.editMedia(firstVideoIndex);
-        }
-      }
-    },
-
-    removeMedia(index) {
-      if (this.getObjectURL(this.selectedMedia[index])) {
-        URL.revokeObjectURL(this.getObjectURL(this.selectedMedia[index]));
-      }
-      this.selectedMedia.splice(index, 1);
-    },
-
-    editMedia(index) {
-      const file = this.selectedMedia[index];
-
-      if (this.isImage(file)) {
-        this.currentImageIndex = index; // Guardar el índice actual
-        this.currentImageUrl = this.getObjectURL(file);
-
-        // Cargar ajustes del editor para esta imagen si existen
-        if (this.imageEditorSettings[index]) {
-          this.currentEditorSettings = {
-            ...this.imageEditorSettings[index]
-          };
-        } else {
-          this.currentEditorSettings = {};
-        }
-
-        this.showImageEditor = true;
-        this.showMediaUpload = false;
-      } else if (this.isVideo(file)) {
-        this.currentVideoIndex = index;
-        this.currentVideoUrl = this.getObjectURL(file);
-        this.showVideoEditor = true;
-        this.showMediaUpload = false;
-      }
-    },
-
-    applyImageChanges(settings) {
-      console.log('Aplicando cambios a la imagen:', settings);
-    },
-
-    applyVideoChanges(settings) {
-      console.log('Aplicando cambios al video:', settings);
-    },
-
-    closeImageEditor() {
-      this.showImageEditor = false;
-      this.$emit('close')
-    },
-
-    closeVideoEditor() {
-      this.showVideoEditor = false;
-      this.$emit('close')
-    },
-
-    close() {
-      // Liberar todas las URLs de objetos
-      this.selectedMedia.forEach(file => {
-        const url = this.getObjectURL(file);
-        if (url && url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
-
-      // Limpiar el array
-      this.selectedMedia = [];
-      this.currentImageIndex = -1;
-      this.currentVideoIndex = -1;
-      this.imageEditorSettings = {}; // Limpiar ajustes
-      this.currentEditorSettings = {}; // Limpiar ajustes actuales
-
-      this.$emit('close');
+      this.uploadedImages = [];
     }
+  },
+
+  // Limpiar recursos cuando el componente se destruye
+  beforeUnmount() {
+    this.cleanupImageUrls();
   }
 };
 </script>
-
-<style scoped>
-/* Estilos globales del componente principal si son necesarios */
-:root {
-  --primary-color: #4263eb;
-  --primary-hover: #3b5bdb;
-  --secondary-color: #f8f9fa;
-  --text-color: #212529;
-  --border-color: #dee2e6;
-  --success-color: #2b8a3e;
-  --danger-color: #c92a2a;
-  --border-radius: 8px;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-}
-
-/* Estilos para el diálogo principal */
-.p-dialog .p-dialog-header,
-.p-dialog .p-dialog-footer {
-  background: var(--secondary-color);
-  border: none;
-  padding: 1.5rem;
-}
-
-.p-dialog .p-dialog-content {
-  padding: 0;
-  overflow: hidden;
-}
-
-.p-dialog .p-dialog-header h3 {
-  margin: 0;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-/* Botones comunes */
-.p-button {
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-.p-button:not(.p-button-text):not(.p-button-outlined) {
-  background: var(--primary-color);
-  border: 1px solid var(--primary-color);
-}
-
-.p-button:not(.p-button-text):not(.p-button-outlined):hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-}
-
-.p-button-text {
-  color: var(--primary-color);
-}
-
-.p-button-text:hover {
-  background: rgba(66, 99, 235, 0.08);
-}
-
-.p-button-outlined {
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-}
-
-.p-button-outlined:hover {
-  background: rgba(66, 99, 235, 0.08);
-}
-
-@media (max-width: 575px) {
-  .p-dialog .p-dialog-header,
-  .p-dialog .p-dialog-footer {
-    padding: 1rem;
-  }
-}
-</style>
-[file content end]

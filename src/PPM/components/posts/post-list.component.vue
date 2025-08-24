@@ -29,14 +29,6 @@ export default {
       default: false
     }
   },
-  methods: {
-    handlePostUpdated(updatedPost) {
-      this.$emit('post-updated', updatedPost);
-    },
-    handlePostDeleted(postId) {
-      this.$emit('post-deleted', postId);
-    }
-  }
 };
 </script>
 
